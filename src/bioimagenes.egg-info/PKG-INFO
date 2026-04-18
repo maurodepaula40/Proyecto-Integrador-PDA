@@ -1,0 +1,22 @@
+Metadata-Version: 2.4
+Name: bioimagenes
+Version: 0.1.0
+Summary: Librería para procesamiento, análisis y visualización de imágenes digitales y médicas (radiografías, tomografías y termografías)
+Author: Nombre del estudiante 1, Nombre del estudiante 2
+License: MIT
+Keywords: procesamiento de imágenes,imágenes médicas,tomografía,radiografía,termografía,ingeniería biomédica
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Image Processing
+Classifier: Topic :: Scientific/Engineering :: Medical Science Apps.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: numpy>=1.24
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: opencv-python>=4.8
+Requires-Dist: pydicom>=2.4
+Dynamic: license-file
