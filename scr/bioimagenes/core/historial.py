@@ -28,7 +28,7 @@ class Historial():
         else:
             self.lista_cambios = lista_cambios  # Usa la lista dada
 
-    def modificar_hsitorial(self, cambio):
+    def modificar_historial(self, cambio):
         """
         Agrega un nuevo cambio al historial.
 
@@ -71,3 +71,4 @@ class Historial():
             return "Historial vacío"
 
         return f"Total de cambios: {len(self.lista_cambios)} | Último cambio: {self.ultimo_cambio}"
+       
