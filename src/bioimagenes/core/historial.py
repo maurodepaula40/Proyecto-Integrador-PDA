@@ -57,7 +57,8 @@ class Historial():
         return len(self.lista_cambios)
     
     def __iter__(self):
-        """Método nativo
+        """
+        Método nativo
         Permite iterar sobre los cambios del historial
         """
         return iter(self.lista_cambios)
@@ -71,4 +72,3 @@ class Historial():
             return "Historial vacío"
 
         return f"Total de cambios: {len(self.lista_cambios)} | Último cambio: {self.ultimo_cambio}"
-       
