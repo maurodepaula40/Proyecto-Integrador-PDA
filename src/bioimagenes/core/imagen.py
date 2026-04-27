@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from src.bioimagenes.core.info import Info
+import os
+from PIL import Image as PILImage
+import nibabel as nb
+from .info import Info
 
 class Imagen:
     """
@@ -24,15 +27,8 @@ class Imagen:
 
         info : Info Objeto que contiene los metadatos asociados a la imagen.
         Si no se proporciona, se genera uno por defecto.
-
-        Raises
-         ------
-        ValueError
-            Si "data" es None o tiene dimensiones inválidas.
-        TypeError
-            Si "data" no es un np.ndarray.
         """ 
-         #Comprobar de que self.data sea valido
+         #Comprobar de que data sea valido
         if data is None:
             raise ValueError ("La imagen no tiene datos (data es None)")
     
@@ -51,7 +47,35 @@ class Imagen:
         self.info = info
         if self.info is None:
             self.info = Info()
+        
+        # ----  Metodo de clase para leer archivos ----
+    @classmethod
+    def leer_archivos(cls, ruta):
+        """
+        Constructor alternativo inteligente. 
+        Detecta el formato de la imagen y retorna los datos como un array de numpy
+        """
+        extension = os.path.splitext(ruta)[1].lower()
 
+        #logica para imagenes tomograficas"
+        if extension in (".nii", ".gz",".dcm"):
+            img_nifti = nb.load(ruta) #cargar la imagen con nibabel
+            datos = img_nifti.get_fdata() #cargar los datos de la imagen como un array de numpy
+            return cls(data = datos, info=None)
+                
+        #logica para imagenes en 2D"
+        elif extension in (".png",".jpg",".jpeg"):
+            with PILImage.open(ruta) as img_pil:
+                if img_pil.mode in ("RGB","P"):
+                    img_pil = img_pil.convert("RGB")
+                elif img_pil.mode in ("1","I","F"):
+                    img_pil = img_pil.convert("L")
+                datos = np.asarray(img_pil)
+                return  cls(data = datos, info=None)
+                    
+        else:
+            raise ValueError(f"Formato {extension} no soportado")
+    
     def visualizar(self):
         """
         Visualiza la imagen utilizando matplotlib
@@ -64,7 +88,6 @@ class Imagen:
                                                     #ax - representa el area donde va la imagen
 
         img = self.data
-        #Ajuste para imágenes float, los recorta para que esten entre 0 y 1
         if img.dtype.kind == "f":
             img = np.clip(img, 0.0, 1.0)
 
