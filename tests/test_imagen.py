@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.getcwd(), "src"))
 from bioimagenes.core.imagen import Imagen
 import numpy as np
 import matplotlib.pyplot as plt
-#import cv2
+import cv2
 import nibabel as nib
 
 #Prueba con imagen en escala de grises
@@ -64,5 +64,11 @@ import nibabel as nib
 #plt.title("Slice axial")
 #plt.axis("off")
 #plt.show()
-imagen_radiografica = Imagen.leer_archivos("N11102.jpg")
-imagen_radiografica.visualizar()
+#imagen_radiografica = Imagen.leer_archivos("N11102.jpg")
+#imagen_radiografica.visualizar()
+
+
+imagen_rgb = Imagen.leer_archivos("espacios-color-fotografia.jpg")
+imagen_rgb.visualizar()
+imagen_rgb.bn()
+imagen_rgb.visualizar()

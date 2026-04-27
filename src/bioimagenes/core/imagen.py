@@ -65,9 +65,8 @@ class Imagen:
             return cls(data = datos, info=None)         #Retorna una instancia de la clase Imagen
                 
         #Lógica para imagenes en 2D"
-
-        elif extension in (".png",".jpg",".jpeg"):  #verificamos si extension existe dentro de la tupla
-            with PILImage.open(ruta) as img_pil: #cargamos la imagen con pillow
+        elif extension in (".png",".jpg",".jpeg"):      #verificamos si extension existe dentro de la tupla
+            with PILImage.open(ruta) as img_pil:        #cargamos la imagen con pillow
                 if img_pil.mode in ("RGB","P"):         # verificamos si la imagen ya es color (RGB) o usa una paleta (formato comprimido) (P)
                     img_pil = img_pil.convert("RGB")    #la convertimos a RGB para estandarizar los canales de color
                 elif img_pil.mode in ("1","I","F"):     # verificamos si imagen es blanco y negro puro (1) o tiene formatos de datos científicos (I) o (F)
@@ -95,7 +94,6 @@ class Imagen:
 
         if img.ndim == 2:
             im = ax.imshow(img, cmap="gray", interpolation="none")
-            plt.colorbar(im, ax=ax)
             ax.set_title("Escala de grises")
         else:
             ax.imshow(img, interpolation="none")
@@ -103,4 +101,12 @@ class Imagen:
 
         plt.tight_layout()
         plt.show()
+
+    def bn(self):
+        """
+        Metodo que convierte una imagen a blanco y negro si no lo estuviera.
+        """
+        if len(self.data.shape) == 3: # verificamos la dimension de la imagen
+            # Promediamos los canales para pasar a gris
+            self.data = np.mean(self.data, axis=2).astype(np.uint8) 
 
