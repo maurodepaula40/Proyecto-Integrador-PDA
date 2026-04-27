@@ -48,31 +48,33 @@ class Imagen:
         if self.info is None:
             self.info = Info()
         
-        # ----  Metodo de clase para leer archivos ----
+    # ----  Metodo de clase para leer archivos ----
     @classmethod
     def leer_archivos(cls, ruta):
+        """ 
+        Metodo de clase que detecta el formato de la imagen y retorna una instancia de la clase Imagen
         """
-        Constructor alternativo inteligente. 
-        Detecta el formato de la imagen y retorna los datos como un array de numpy
-        """
-        extension = os.path.splitext(ruta)[1].lower()
+        extension = os.path.splitext(ruta)[1].lower()   #accede a la ruta del archivo y obtiene en string la extension de la imagen ".png", ".nii"
+                                                        # os.path.splitext es una función de Python en el módulo os.path que se 
+                                                        # utiliza para dividir una ruta de acceso en un par (raíz, extensión) . 
 
         #logica para imagenes tomograficas"
-        if extension in (".nii", ".gz",".dcm"):
-            img_nifti = nb.load(ruta) #cargar la imagen con nibabel
-            datos = img_nifti.get_fdata() #cargar los datos de la imagen como un array de numpy
-            return cls(data = datos, info=None)
+        if extension in (".nii", ".gz",".dcm"):         #verificamos si extension existe dentro de la tupla
+            img_nifti = nb.load(ruta)                   #cargamos la imagen con nibabel
+            datos = img_nifti.get_fdata()               #cargamos los datos de la imagen como un array de numpy con get_fdata()
+            return cls(data = datos, info=None)         #Retorna una instancia de la clase Imagen
                 
-        #logica para imagenes en 2D"
-        elif extension in (".png",".jpg",".jpeg"):
-            with PILImage.open(ruta) as img_pil:
-                if img_pil.mode in ("RGB","P"):
-                    img_pil = img_pil.convert("RGB")
-                elif img_pil.mode in ("1","I","F"):
-                    img_pil = img_pil.convert("L")
-                datos = np.asarray(img_pil)
-                return  cls(data = datos, info=None)
-                    
+        #Lógica para imagenes en 2D"
+
+        elif extension in (".png",".jpg",".jpeg"):  #verificamos si extension existe dentro de la tupla
+            with PILImage.open(ruta) as img_pil: #cargamos la imagen con pillow
+                if img_pil.mode in ("RGB","P"):         # verificamos si la imagen ya es color (RGB) o usa una paleta (formato comprimido) (P)
+                    img_pil = img_pil.convert("RGB")    #la convertimos a RGB para estandarizar los canales de color
+                elif img_pil.mode in ("1","I","F"):     # verificamos si imagen es blanco y negro puro (1) o tiene formatos de datos científicos (I) o (F)
+                    img_pil = img_pil.convert("L")      #La convertimos a escala de grises de 8 bits (0-255)
+                datos = np.asarray(img_pil)             # Convertimos la imagen ya normalizada en una matriz de números (NumPy)
+                return  cls(data = datos, info=None)    #retornamos una instancia de la clase Imagen
+            
         else:
             raise ValueError(f"Formato {extension} no soportado")
     
