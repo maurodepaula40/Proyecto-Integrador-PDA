@@ -104,9 +104,9 @@ class Imagen:
 
     def bn(self):
         """
-        Metodo que convierte una imagen a blanco y negro si no lo estuviera.
+        Metodo que convierte una imagen RGB a blanco y negro.
         """
         if len(self.data.shape) == 3: # verificamos la dimension de la imagen
-            # Promediamos los canales para pasar a gris
+            #Promediamos los canales para pasar a gris
             self.data = np.mean(self.data, axis=2).astype(np.uint8) 
 
