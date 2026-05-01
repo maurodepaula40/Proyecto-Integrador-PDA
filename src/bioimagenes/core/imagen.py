@@ -120,3 +120,43 @@ class Imagen:
 
         # Retornamos ese valor cuando se usa len(imagen)
         return total_pixeles
+    
+    def __str__(self):
+        """
+        Método que retorna una representación en texto de la imagen.
+        Se ejecuta cuando haces print(imagen)
+        """
+        
+        # Obtenemos las dimensiones de la imagen
+        # shape[:2] toma solo las dos primeras dimensiones (filas, columnas)
+        filas, columnas = self.data.shape[:2]
+        
+        # Verificamos si la imagen tiene 3 dimensiones (RGB) o 2 (escala de grises)
+        if self.data.ndim == 3:
+            # Si tiene 3 dimensiones, obtenemos el número de canales
+            canales = self.data.shape[2]
+            tipo_imagen = f"RGB ({canales} canales)"
+        else:
+            # Si tiene 2 dimensiones, es escala de grises
+            tipo_imagen = "Escala de grises"
+        
+        # Obtenemos el tipo de dato de los píxeles (uint8, float32, etc)
+        tipo_dato = str(self.data.dtype)
+        
+        # Obtenemos el valor mínimo y máximo de los píxeles
+        valor_min = self.data.min()
+        valor_max = self.data.max()
+        
+        # Creamos el texto que se mostrará
+        texto = f"""
+        INFORMACIÓN DE LA IMAGEN
+        Dimensiones: {filas} x {columnas} píxeles
+        Tipo de imagen: {tipo_imagen}
+        Tipo de dato: {tipo_dato}
+        Valor mínimo: {valor_min}
+        Valor máximo: {valor_max}
+        Total de píxeles: {len(self)}
+        """
+        
+        # Retornamos el texto
+        return texto
