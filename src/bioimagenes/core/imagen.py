@@ -110,3 +110,13 @@ class Imagen:
             #Promediamos los canales para pasar a gris
             self.data = np.mean(self.data, axis=2).astype(np.uint8) 
 
+def __len__(self):
+    # Tomamos solo las dos primeras dimensiones del array:
+    # shape puede ser (filas, columnas) o (filas, columnas, canales)
+    filas, columnas = self.data.shape[:2]
+
+    # Calculamos el total de píxeles multiplicando filas por columnas
+    total_pixeles = filas * columnas
+
+    # Retornamos ese valor cuando se usa len(imagen)
+    return total_pixeles
