@@ -72,20 +72,80 @@ import cv2
 #imagen_rgb.visualizar()
 
 
-def test_len_imagen_valido():
-    print("\n--- Test len válido ---")
+# Ruta de la imagen de prueba
+RUTA_IMAGEN = r"tests\imagenes_test\termografias\N11102.jpg"
 
-    try:
-        img = Imagen()
-        img.data = np.zeros((4, 5))  # 20 píxeles
+# TEST 1: Cargar imagen real y verificar len()
+print("TEST 1: Verificar len() con imagen real")
 
-        resultado = len(img)
-        esperado = 20
+# Verificamos que el archivo existe
+if os.path.exists(RUTA_IMAGEN):
+    # Cargamos la imagen usando el método de clase
+    img = Imagen.leer_archivos(RUTA_IMAGEN)
+    
+    # Obtenemos el resultado de len()
+    resultado = len(img)
+    
+    # Calculamos manualmente cuántos píxeles debería tener
+    filas, columnas = img.data.shape[:2]
+    esperado = filas * columnas
+    
+    # Comparamos resultado con lo esperado
+    if resultado == esperado:
+        print(f"PASÓ: len() = {resultado}")
+        print(f"  Imagen: {filas} x {columnas} píxeles")
+    else:
+        print(f"FALLÓ: esperado {esperado}, obtuvo {resultado}")
+else:
+    print(f"No se encontró la imagen en {RUTA_IMAGEN}")
 
-        if resultado == esperado:
-            print("OK: Caso válido 4x5")
-        else:
-            print(f"ERROR: esperado {esperado}, obtenido {resultado}")
+print()
 
-    except Exception as e:
-        print(f"ERROR inesperado en caso válido: {e}")
+# TEST 2: Verificar que len() retorna un número positivo
+print("TEST 2: Verificar que len() es positivo")
+
+if os.path.exists(RUTA_IMAGEN):
+    img = Imagen.leer_archivos(RUTA_IMAGEN)
+    resultado = len(img)
+    
+    # Verificamos que sea mayor a 0
+    if resultado > 0:
+        print(f"PASÓ: len() = {resultado} (positivo)")
+    else:
+        print(f"FALLÓ: len() debería ser > 0")
+else:
+    print(f"No se encontró la imagen")
+
+print()
+
+# TEST 3: Verificar que len() retorna un entero
+print("TEST 3: Verificar que len() retorna un entero")
+
+if os.path.exists(RUTA_IMAGEN):
+    img = Imagen.leer_archivos(RUTA_IMAGEN)
+    resultado = len(img)
+    
+    # Verificamos el tipo de dato
+    if isinstance(resultado, int):
+        print(f"PASÓ: len() retorna tipo int")
+    else:
+        print(f"FALLÓ: len() retorna {type(resultado)}, esperado int")
+else:
+    print(f"No se encontró la imagen")
+
+print()
+
+# TEST 4: Mostrar información de la imagen
+print("TEST 4: Información de la imagen")
+
+if os.path.exists(RUTA_IMAGEN):
+    img = Imagen.leer_archivos(RUTA_IMAGEN)
+    
+    # Mostramos los datos de la imagen
+    print(f"Forma de la imagen: {img.data.shape}")
+    print(f"Total de píxeles: {len(img)}")
+    print(f"Tipo de dato: {img.data.dtype}")
+    print(f"Valor mínimo: {img.data.min()}")
+    print(f"Valor máximo: {img.data.max()}")
+else:
+    print(f"No se encontró la imagen")
