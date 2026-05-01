@@ -1,12 +1,11 @@
 import sys
 import os
 #Esto hace lo mismo que el comando 'set PYTHONPATH=src' pero automáticamente
-sys.path.append(os.path.join(os.getcwd(), "src"))
+sys.path.append(os.path.abspath("src"))
 from bioimagenes.core.imagen import Imagen
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-import nibabel as nib
 
 #Prueba con imagen en escala de grises
 
@@ -15,16 +14,15 @@ import nibabel as nib
 #img.visualizar()
 
 #prueba con imagen RGB
-##hola = np.ndarray()
+#hola = np.ndarray()
 #dato = np.random.randint(0, 255, (100, 100,3)) 
-#img = Imagen(data=datovich, info=None)
+#img = Imagen(data=dato, info=None)
 #img.visualizar()
 
-#Prueba de tipo de dato
+#Prueba de tipo de dato (error)
 #data = [[1,2,3,4,5,6,7,8,9],[1,2,3,4,5,6,7,8,9]]
 #image = Imagen(data=data, info=None)
 #image.visualizar()
-
 
 #PRUEBA DE TIPO DE DIMENSIONES
 
@@ -68,7 +66,26 @@ import nibabel as nib
 #imagen_radiografica.visualizar()
 
 
-imagen_rgb = Imagen.leer_archivos("espacios-color-fotografia.jpg")
-imagen_rgb.visualizar()
-imagen_rgb.bn()
-imagen_rgb.visualizar()
+#imagen_rgb = Imagen.leer_archivos("espacios-color-fotografia.jpg")
+#imagen_rgb.visualizar()
+#imagen_rgb.bn()
+#imagen_rgb.visualizar()
+
+
+def test_len_imagen_valido():
+    print("\n--- Test len válido ---")
+
+    try:
+        img = Imagen()
+        img.data = np.zeros((4, 5))  # 20 píxeles
+
+        resultado = len(img)
+        esperado = 20
+
+        if resultado == esperado:
+            print("OK: Caso válido 4x5")
+        else:
+            print(f"ERROR: esperado {esperado}, obtenido {resultado}")
+
+    except Exception as e:
+        print(f"ERROR inesperado en caso válido: {e}")
