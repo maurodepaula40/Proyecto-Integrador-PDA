@@ -171,7 +171,7 @@ class Imagen:
         #Validamos si el índice es una tupla (ej: [y, x]) porque python ve 50,50 , lo convierte en (50,50) y se lo entrega a index
         if isinstance(index, tuple):
             errores = []  #creamos una lista para guardar los errores
-            for i in index:  #hacemos un bucle y verificamos que si hay elementos que no sean enteros ni slice
+            for i in index:  #hacemos un bucle y verificamos si hay elementos que no sean enteros ni slice
                 if not isinstance(i, int) and not isinstance(i, slice):
                     errores.append(str(i)) #agregamos como str en errores el valor erroneo
             
@@ -182,7 +182,7 @@ class Imagen:
                 
                 valores_mal = " y ".join(errores_con_comillas)  #unificamos todos los textos de la lista en una sola frase
             
-                print(f"Error de TIPO: El/Los valor/valores {valores_mal} en {index} deben ser números enteros.")
+                print(f"Error de TIPO: Los valores {valores_mal} en {index} deben ser números enteros.")
                 return None
         
         #Validamos si es un valor único pero no es entero (ej: img["a"]) ---

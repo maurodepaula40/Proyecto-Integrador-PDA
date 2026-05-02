@@ -296,7 +296,7 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11102.jpg"
 
 img = Imagen.leer_archivos(RUTA_IMAGEN)
 print(img)
-print(img[1,3:8])
-print(img["100","123"])
-print(img[400,500])
-print(len(img))
+#print(img[1,3:8])
+print(img["100",122])
+#print(img[400,500])
+#print(len(img))
