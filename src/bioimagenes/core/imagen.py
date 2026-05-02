@@ -47,7 +47,7 @@ class Imagen:
         self.original = data.copy()
         self.data = self.original.copy()
 
-        if self.info is None:
+        if info is None:
             self.info = Info()
             
     # ----  Metodo de clase para leer archivos ----
@@ -110,4 +110,105 @@ class Imagen:
         """
         if len(self.data.shape) == 3: # verificamos la dimension de la imagen
             #Promediamos los canales para pasar a gris
-            self.data = np.mean(self.data, axis=2).astype(np.uint8)
+            self.data = np.mean(self.data, axis=2).astype(np.uint8) 
+
+    def __len__(self):
+        # Tomamos solo las dos primeras dimensiones del array:
+        # shape puede ser (filas, columnas) o (filas, columnas, canales)
+        filas, columnas = self.data.shape[:2]
+
+        # Calculamos el total de píxeles multiplicando filas por columnas
+        total_pixeles = filas * columnas
+
+        # Retornamos ese valor cuando se usa len(imagen)
+        return total_pixeles
+    
+    def __str__(self):
+        """
+        Método que retorna una representación en texto de la imagen.
+        Se ejecuta cuando haces print(imagen)
+        """
+        
+        # Obtenemos las dimensiones de la imagen
+        # shape[:2] toma solo las dos primeras dimensiones (filas, columnas)
+        filas, columnas = self.data.shape[:2]
+        
+        # Verificamos si la imagen tiene 3 dimensiones (RGB) o 2 (escala de grises)
+        if self.data.ndim == 3:
+            # Si tiene 3 dimensiones, obtenemos el número de canales
+            canales = self.data.shape[2]
+            tipo_imagen = f"RGB ({canales} canales)"
+        else:
+            # Si tiene 2 dimensiones, es escala de grises
+            tipo_imagen = "Escala de grises"
+        
+        # Obtenemos el tipo de dato de los píxeles (uint8, float32, etc)
+        tipo_dato = str(self.data.dtype)
+        
+        # Obtenemos el valor mínimo y máximo de los píxeles
+        valor_min = self.data.min()
+        valor_max = self.data.max()
+        
+        # Creamos el texto que se mostrará
+        texto = f"""
+        INFORMACIÓN DE LA IMAGEN
+        Dimensiones: {filas} x {columnas} píxeles
+        Tipo de imagen: {tipo_imagen}
+        Tipo de dato: {tipo_dato}
+        Valor mínimo: {valor_min}
+        Valor máximo: {valor_max}
+        Total de píxeles: {len(self)}
+        """
+        
+        # Retornamos el texto
+        return texto
+
+    def __getitem__(self, index):
+        """
+        Permite acceder a los píxeles usando corchetes:
+        Ejemplo: objeto_imagen[y, x]
+        """
+        #Validamos si el índice es una tupla (ej: [y, x]) porque python ve 50,50 , lo convierte en (50,50) y se lo entrega a index
+        if isinstance(index, tuple):
+            errores = []  #creamos una lista para guardar los errores
+            for i in index:  #hacemos un bucle y verificamos que si hay elementos que no sean enteros ni slice
+                if not isinstance(i, int) and not isinstance(i, slice):
+                    errores.append(str(i)) #agregamos como str en errores el valor erroneo
+            
+            if len(errores) > 0:             #evaluamos si la lista errores contiene al menos un elemento
+                errores_con_comillas = []   #creamos otra lista para guardar los elementos formateados visualmente
+                for e in errores:           #iteramos sobre la lista de errores
+                    errores_con_comillas.append(f"'{e}'")    #agregamos los valores errones con comiilas simple
+                
+                valores_mal = " y ".join(errores_con_comillas)  #unificamos todos los textos de la lista en una sola frase
+            
+                print(f"Error de TIPO: El/Los valor/valores {valores_mal} en {index} deben ser números enteros.")
+                return None
+        
+        #Validamos si es un valor único pero no es entero (ej: img["a"]) ---
+        elif not isinstance(index, int) and not isinstance(index, slice):
+            #Avisamos que el índice individual no es válido
+            print(f"El índice {index} debe ser un número entero.")
+            #Retornamos None
+            return None
+
+        #Intentamos acceder a los datos con numpy
+        try:
+            #Si pasó las validaciones de tipo, le pedimos el dato al array
+            return self.data[index]
+        
+        #Si las coordenadas existen pero están fuera del tamaño de la imagen
+        except IndexError:
+            #Obtenemos las dimensiones de la imagen para el mensaje de error
+            dimensiones = self.data.shape
+            #Avisamos que se pasó de los límites
+            print(f"Error de RANGO: Las coordenadas {index} exceden el tamaño {dimensiones}.")
+            # Retornamos None
+            return None
+            
+        #Si ocurre cualquier otro error que no hayamos previsto
+        except Exception as e:
+            #Imprimimos el error técnico para saber qué pasó
+            print(f"Ocurrió un error inesperado: {e}")
+            # Retornamos None
+            return None
