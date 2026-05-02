@@ -165,50 +165,44 @@ class Imagen:
 
     def __getitem__(self, index):
         """
-        Permite acceder a los píxeles usando corchetes:
-        Ejemplo: objeto_imagen[y, x]
+        Permite acceder a los píxeles usando corchetes: objeto_imagen[y, x]
         """
-        #Validamos si el índice es una tupla (ej: [y, x]) porque python ve 50,50 , lo convierte en (50,50) y se lo entrega a index
+        errores = []
+
+        # Caso para cuando se pasan varios índices (Tupla: [y, x])
         if isinstance(index, tuple):
-            errores = []  #creamos una lista para guardar los errores
-            for i in index:  #hacemos un bucle y verificamos si hay elementos que no sean enteros ni slice
-                if not isinstance(i, int) and not isinstance(i, slice):
-                    errores.append(str(i)) #agregamos como str en errores el valor erroneo
-            
-            if len(errores) > 0:             #evaluamos si la lista errores contiene al menos un elemento
-                errores_con_comillas = []   #creamos otra lista para guardar los elementos formateados visualmente
-                for e in errores:           #iteramos sobre la lista de errores
-                    errores_con_comillas.append(f"'{e}'")    #agregamos los valores errones con comiilas simple
-                
-                valores_mal = " y ".join(errores_con_comillas)  #unificamos todos los textos de la lista en una sola frase
-            
-                print(f"Error de TIPO: Los valores {valores_mal} en {index} deben ser números enteros.")
-                return None
+            for i in index:
+                if not isinstance(i, (int, slice)):
+                    errores.append(str(i))
         
-        #Validamos si es un valor único pero no es entero (ej: img["a"]) ---
-        elif not isinstance(index, int) and not isinstance(index, slice):
-            #Avisamos que el índice individual no es válido
-            print(f"El índice {index} debe ser un número entero.")
-            #Retornamos None
+        # Caso cuando se pasa un solo índice (ej: img["a"])
+        elif not isinstance(index, (int, slice)):
+            errores.append(str(index))
+
+        #MANEJO DE MENSAJES DE ERROR DE TIPO
+        if len(errores) > 0:
+            #Formateamos todos los errores detectados con comillas
+            errores_con_comillas = []
+            for e in errores:
+                errores_con_comillas.append(f"'{e}'")
+            
+            #Decidimos si el mensaje es en singular o plural
+            if len(errores) == 1:
+                print(f"Error de TIPO: El valor {errores_con_comillas[0]} en {index} debe ser número entero.")
+            else:
+                valores_mal = " y ".join(errores_con_comillas)
+                print(f"Error de TIPO: Los valores {valores_mal} en {index} deben ser números enteros.")
+            
             return None
 
-        #Intentamos acceder a los datos con numpy
         try:
-            #Si pasó las validaciones de tipo, le pedimos el dato al array
             return self.data[index]
         
-        #Si las coordenadas existen pero están fuera del tamaño de la imagen
         except IndexError:
-            #Obtenemos las dimensiones de la imagen para el mensaje de error
             dimensiones = self.data.shape
-            #Avisamos que se pasó de los límites
             print(f"Error de RANGO: Las coordenadas {index} exceden el tamaño {dimensiones}.")
-            # Retornamos None
             return None
             
-        #Si ocurre cualquier otro error que no hayamos previsto
         except Exception as e:
-            #Imprimimos el error técnico para saber qué pasó
             print(f"Ocurrió un error inesperado: {e}")
-            # Retornamos None
             return None
