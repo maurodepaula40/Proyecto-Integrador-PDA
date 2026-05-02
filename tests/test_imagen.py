@@ -3,6 +3,7 @@ import os
 #Esto hace lo mismo que el comando 'set PYTHONPATH=src' pero automáticamente
 sys.path.append(os.path.join(os.getcwd(), "src"))
 from bioimagenes.core.imagen import Imagen
+from bioimagenes.core.historial import Historial
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -68,7 +69,7 @@ import nibabel as nib
 #imagen_radiografica.visualizar()
 
 
-imagen_rgb = Imagen.leer_archivos("espacios-color-fotografia.jpg")
+imagen_rgb = Imagen.leer_archivos("tests/imagenes_test/espacios-color-fotografia.jpg")
 imagen_rgb.visualizar()
 imagen_rgb.bn()
 imagen_rgb.visualizar()

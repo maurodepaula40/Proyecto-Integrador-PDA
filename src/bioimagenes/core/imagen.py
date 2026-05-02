@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import os
 from PIL import Image as PILImage
 import nibabel as nb
-from .info import Info
+from bioimagenes.core.info import Info
+from bioimagenes.core.historial import Historial
 
 class Imagen:
     """
@@ -28,7 +29,7 @@ class Imagen:
         info : Info Objeto que contiene los metadatos asociados a la imagen.
         Si no se proporciona, se genera uno por defecto.
         """ 
-         #Comprobar de que data sea valido
+        #Comprobar de que data sea valido
         if data is None:
             raise ValueError ("La imagen no tiene datos (data es None)")
     
@@ -43,11 +44,12 @@ class Imagen:
         if data.ndim == 3 and data.shape[2] != 3:
             raise ValueError("La imagen RGB debe tener 3 canales")
         
-        self.data = data
-        self.info = info
+        self.original = data.copy()
+        self.data = self.original.copy()
+
         if self.info is None:
             self.info = Info()
-        
+            
     # ----  Metodo de clase para leer archivos ----
     @classmethod
     def leer_archivos(cls, ruta):
@@ -108,5 +110,4 @@ class Imagen:
         """
         if len(self.data.shape) == 3: # verificamos la dimension de la imagen
             #Promediamos los canales para pasar a gris
-            self.data = np.mean(self.data, axis=2).astype(np.uint8) 
-
+            self.data = np.mean(self.data, axis=2).astype(np.uint8)
