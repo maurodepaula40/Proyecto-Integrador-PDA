@@ -313,7 +313,12 @@ img = Imagen.leer_archivos(RUTA_IMAGEN)
 topSobel = [[1,2,1],[0,0,0],[-1,-2,-1]]
 ## Detector de bordes izquierdos (Left Sobel)
 leftSobel = [[1,0,-1],[2,0,-2],[1,0,-1]]
-f = filtro.Filtro(tipo="lefSobel",kernel=leftSobel, tamaño="3x3")
-img.aplicar_filtro(filtro=f)
+blur = [[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]]
+## Detector de bordes inferiores (Bottom Sobel)
+bottomSobel = [[-1,-2,-1],[0,0,0],[1,2,1]]
 
-img.visualizar() #IMAGEN CON FILTRO TOP SOBEL
+##Sharpen
+sharpen = [[0,-1,0],[-1,5,-1],[0,-1,0]]
+f = filtro.Filtro(tipo="sharpen",kernel=sharpen, tamaño="3x3")
+img.aplicar_filtro(filtro=f)
+img.visualizar()

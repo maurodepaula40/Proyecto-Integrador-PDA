@@ -29,7 +29,7 @@ class Filtro:
 
         #Calculamos los suma de los coeficientes del kernel para la normalizacion
         # Si la suma es 0 (como en filtros de detección de bordes), establecemos C=1 para evitar divisiones por cero
-        suma_kernel = np.sum(self.kernel_actual)
+        suma_kernel = np.sum(kernel_actual)
         if suma_kernel != 0:
             c_normalizado = suma_kernel
         else:
@@ -56,9 +56,15 @@ class Filtro:
     def aplicar(self, imagen):
         from bioimagenes.core.imagen import Imagen
 
-        if not isinstance(imagen, Imagen):
-            print(f"Error: No es un objeto Imagen")
-            return None
+        #Obtenemos la matriz procesada llamando al metodo convolucion
+        matriz_resultado = self.convolucion(imagen)
+
+        #Creamos un OBJETO nuevo
+        #usamos el constructor de Imagen para que sea un objeto completo
+        imagen_filtrada = Imagen(data=matriz_resultado)
+        
+        #Retornamos una instancia de la clase Imagen
+        return imagen_filtrada
 
     def __str__(self):
         pass
