@@ -4,6 +4,7 @@ import os
 sys.path.append(os.path.abspath("src"))
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.historial import Historial
+from src.bioimagenes.filtros import filtro
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -78,7 +79,7 @@ import cv2
 
 
 # Ruta de la imagen de prueba
-RUTA_IMAGEN = "tests/imagenes_test/termografias/N11102.jpg"
+RUTA_IMAGEN = "tests/imagenes_test/radiografias/sample/101103270798497222826083823719046670601_jw1fu2.png"
 
 # # TEST 1: Cargar imagen real y verificar len()
 # print("TEST 1: Verificar len() con imagen real")
@@ -294,9 +295,17 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11102.jpg"
 
 
 
-img = Imagen.leer_archivos(RUTA_IMAGEN)
-print(img)
+#PRUEBA DEL METODO __getitem__
+#img = Imagen.leer_archivos(RUTA_IMAGEN)
+#print(img)
 #print(img[1,3:8])
-print(img["500",122])
+#print(img["500",122])
 #print(img[400,500])
 #print(len(img))
+
+#help(Imagen)
+
+#PRUEBA DEL METODO aplicar_filtro()
+
+img = Imagen.leer_archivos(RUTA_IMAGEN)
+#filtro_deteccion_bordes = 

@@ -5,6 +5,7 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
+from bioimagenes.filtros import filtro
 
 class Imagen:
     """
@@ -206,3 +207,27 @@ class Imagen:
         except Exception as e:
             print(f"Ocurrió un error inesperado: {e}")
             return None
+
+    def aplicar_filtro(self, filtro: filtro.Filtro = None):
+        """
+        Aplica un objeto Filtro sobre la imagen
+        Parametro:
+        filtro=Filtro - que es un objteto, se le pasa una instancia de la clase Filtro
+        """
+        try:
+            #Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
+            #de la imagen (self) para que el filtro pueda acceder a sus atributos.
+            imagen_procesada = filtro.aplicar(self)
+            
+            #Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión procesada.
+            if imagen_procesada is not None:
+                self.data = imagen_procesada.data
+                print("El filtro se aplicó exitosamente sobre el objeto Imagen.")
+            
+        #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada o carece del método aplicar.
+        except AttributeError:
+            print("Error: El objeto filtro no es válido o no posee el método 'aplicar'.")
+            
+        #Capturan cualquier error surgida durante el procesamiento interno del filtro.
+        except Exception as e:
+            print(f"Error al procesar el filtro: {e}")
