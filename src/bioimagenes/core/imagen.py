@@ -208,7 +208,7 @@ class Imagen:
             print(f"Ocurrió un error inesperado: {e}")
             return None
 
-    def aplicar_filtro(self, filtro: filtro.Filtro = None):
+    def aplicar_filtro(self, filtro: filtro=None    ):
         """
         Aplica un objeto Filtro sobre la imagen
         Parametro:

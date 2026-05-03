@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.abspath("src"))
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.historial import Historial
-from src.bioimagenes.filtros import filtro
+from bioimagenes.filtros import filtro
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -308,4 +308,12 @@ RUTA_IMAGEN = "tests/imagenes_test/radiografias/sample/1011032707984972228260838
 #PRUEBA DEL METODO aplicar_filtro()
 
 img = Imagen.leer_archivos(RUTA_IMAGEN)
-#filtro_deteccion_bordes = 
+
+## Detector de bordes superiores (Top Sobel)
+topSobel = [[1,2,1],[0,0,0],[-1,-2,-1]]
+## Detector de bordes izquierdos (Left Sobel)
+leftSobel = [[1,0,-1],[2,0,-2],[1,0,-1]]
+f = filtro.Filtro(tipo="lefSobel",kernel=leftSobel, tamaño="3x3")
+img.aplicar_filtro(filtro=f)
+
+img.visualizar() #IMAGEN CON FILTRO TOP SOBEL
