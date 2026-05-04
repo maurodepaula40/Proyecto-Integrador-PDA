@@ -79,7 +79,7 @@ import cv2
 
 
 # Ruta de la imagen de prueba
-RUTA_IMAGEN = "tests/imagenes_test/radiografias/sample/101103270798497222826083823719046670601_jw1fu2.png"
+RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 # # TEST 1: Cargar imagen real y verificar len()
 # print("TEST 1: Verificar len() con imagen real")
@@ -308,17 +308,24 @@ RUTA_IMAGEN = "tests/imagenes_test/radiografias/sample/1011032707984972228260838
 #PRUEBA DEL METODO aplicar_filtro()
 
 img = Imagen.leer_archivos(RUTA_IMAGEN)
+## Detector de bordes inferiores (Bottom Sobel)
+bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
+blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
+suavizado = np.ones((3,3))
+##Outline
+ouutline = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+##Sharpen
+sharpen = np.array([[0,-1,0],[-1,5,-1],[0,-1,0]])
 
 ## Detector de bordes superiores (Top Sobel)
-topSobel = [[1,2,1],[0,0,0],[-1,-2,-1]]
-## Detector de bordes izquierdos (Left Sobel)
-leftSobel = [[1,0,-1],[2,0,-2],[1,0,-1]]
-blur = [[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]]
-## Detector de bordes inferiores (Bottom Sobel)
-bottomSobel = [[-1,-2,-1],[0,0,0],[1,2,1]]
+topSobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
 
-##Sharpen
-sharpen = [[0,-1,0],[-1,5,-1],[0,-1,0]]
-f = filtro.Filtro(tipo="sharpen",kernel=sharpen, tamaño="3x3")
-img.aplicar_filtro(filtro=f)
+## Detector de bordes izquierdos (Left Sobel)
+leftSobel = np.array([[1,0,-1],[2,0,-2],[1,0,-1]])
+## Detector de bordes derechos (Right Sobel)
+rightSobel = np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
+
+f = filtro.Filtro(tipo="rightSobel", kernel=rightSobel, tamaño="3x3")
+#***** Aplicamos el filtro a la imagen *****
+img.aplicar_filtro(f)
 img.visualizar()

@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.ndimage
+
 class Filtro:
     """"
     Clase que permite realizar operaciones sobre la imagen
@@ -18,40 +19,27 @@ class Filtro:
         self.tamaño = tamaño
 
     def convolucion(self, objeto_imagen):
-        """
-        Ejecuta la operacion de convolucion sobre los datos de una imagen
-        """
-        #Extraemos la matriz de datos y la convertimos a float para hacer los calculos mas precisos
-        matriz_original =objeto_imagen.data.astype(float)
+        #Convertimos a float para no perder info
+        matriz_original = objeto_imagen.data.astype(float)
+        kernel_actual = self.kernel.astype(float)
 
-        #Accedemos al kernel almacenado en la instancia self.kernel
-        kernel_actual = self.kernel
-
-        #Calculamos los suma de los coeficientes del kernel para la normalizacion
-        # Si la suma es 0 (como en filtros de detección de bordes), establecemos C=1 para evitar divisiones por cero
+        #Normalizamos el kernel
         suma_kernel = np.sum(kernel_actual)
         if suma_kernel != 0:
-            c_normalizado = suma_kernel
+            c_normalizado = float(suma_kernel)
         else:
-            c_normalizado = 1
-        
-        #Preparamos una matriz vacia con ceros con las mismas dimensiones de la imagen para almacenar el resultado
-        matriz_filtrada = np.zeros_like(matriz_original)
+            c_normalizado = 1.0   
 
-        #Procesamos la imagen segun su dimensionalidad (Escala de grise o RGB)
-        if len(matriz_original.shape) == 3:
-            #Iteramos sobre los 3 canalas RGB
-            for i in range(3):
-                #Realizamos la convolucion en el canal actual
-                canal_procesado = scipy.ndimage.convolve(matriz_original[:,:,i], kernel_actual, mode="constant")
-                #Aplicamos la normalizacion y aseguramos que los valores esten en 0 y 255
-                matriz_filtrada[:,:,i] = np.clip(canal_procesado/c_normalizado,0,255)
-        else:
-            #Procesamos imagenes en blanco y negro (un solo canal)
-            canal_procesado = scipy.ndimage.convolve(matriz_original, kernel_actual, mode="constant")
-            matriz_filtrada =np.clip(canal_procesado/c_normalizado,0,255)
+        #Convolución (Scipy detecta si es 2D o 3D solo)
+        canal_procesado = scipy.ndimage.convolve(matriz_original, kernel_actual, mode="constant")
+        resultado = canal_procesado / c_normalizado
 
-        return matriz_filtrada.astype(np.uint8)
+        # Si la imagen es uint16, debemos llevarla al rango 0-255 antes de convertir a uint8
+        if objeto_imagen.data.dtype == np.uint16:
+             resultado = (resultado / 65535.0) * 255.0
+
+        return np.clip(resultado, 0, 255).astype(np.uint8)
+
 
     def aplicar(self, imagen):
         from bioimagenes.core.imagen import Imagen

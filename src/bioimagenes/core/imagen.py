@@ -224,11 +224,11 @@ class Imagen:
                 self.data = imagen_procesada.data
                 print("El filtro se aplicó exitosamente sobre el objeto Imagen.")
             
-        #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada o carece del método aplicar.
+        #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada.
         except AttributeError:
-            print("Error: El objeto filtro no es válido o no posee el método 'aplicar'.")
+            print("Error: El objeto filtro no es válido.")
             
         #Capturan cualquier error surgida durante el procesamiento interno del filtro.
         except Exception as e:
-            print(f"DEBUG: El tipo de lo que recibí es: {type(filtro)}")
+            print(f"DEBUG: El tipo de lo que se recibio es: {type(filtro)}")
             print(f"DEBUG: El error real es: {e}")

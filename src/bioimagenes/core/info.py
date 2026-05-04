@@ -119,6 +119,3 @@ class Info:
 
         ancho, alto, canales = dimensiones
         return ancho * alto * canales
-
-    
-    
