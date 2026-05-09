@@ -5,7 +5,6 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros import filtro as fl
 
 class Imagen:
     """
@@ -18,18 +17,18 @@ class Imagen:
     
     Además, integra metadatos mediante la clase Info y mantiene 
     un registro de cambios a través de la clase Historial 
+
+    Parámetros:
+        - data: recibe un np.ndarray, contiene los valores de los píxeles de la imagen.
+                Puede ser 2D (escala de grises) o 3D (RGB).
+        - info : recibe un objeto llamado Info que contiene los metadatos asociados a la imagen.
+                 Si no se proporciona, se genera uno por defecto.
+    Errores:
+        - ValueError si data no tiene datos, si data no es de 2 o 3 dimensiones y si es una clase RGB que no tiene 3 canales
+        - TypeError si data no es un np.ndarray
     """
     def __init__(self, data: np.ndarray, info: Info = None):
-        """ 
-        Inicializa una instancia de la clase Imagen.
-        Parámetros
-        ---------- 
-        data : np.ndarray Matriz que contiene los valores de los píxeles de la imagen.
-        Puede ser 2D (escala de grises) o 3D (RGB).
-
-        info : Info Objeto que contiene los metadatos asociados a la imagen.
-        Si no se proporciona, se genera uno por defecto.
-        """ 
+       
         #Comprobar de que data sea valido
         if data is None:
             raise ValueError ("La imagen no tiene datos (data es None)")
@@ -46,16 +45,23 @@ class Imagen:
             raise ValueError("La imagen RGB debe tener 3 canales")
         
         self.original = data.copy()
-        self.data = self.original.copy()
+        self.__data = self.original.copy()
 
         if info is None:
-            self.info = Info()
+            self.__info = Info()
             
     # ----  Metodo de clase para leer archivos ----
     @classmethod
-    def leer_archivos(cls, ruta):
+    def cargar(cls, ruta):
         """ 
-        Metodo de clase que detecta el formato de la imagen y retorna una instancia de la clase Imagen
+        Metodo de clase que detecta el formato de la imagen. Soporta formatos png, jpg, jpeg, nii, dicom y gz
+
+        Parametro:
+            - ruta: recibe la direccion de la imagen como string
+        Retorna:
+            Una instancia de la clase Imagen
+        Errores:
+            Retorna ValueError si el formato de la imagen no es soportado
         """
         extension = os.path.splitext(ruta)[1].lower()   #accede a la ruta del archivo y obtiene en string la extension de la imagen ".png", ".nii"
                                                         # os.path.splitext es una función de Python en el módulo os.path que se 
@@ -82,7 +88,10 @@ class Imagen:
     
     def visualizar(self):
         """
-        Visualiza la imagen utilizando matplotlib
+        Permite mostrar una imagen almacenada utilizando la librería Matplotlib
+
+        Retorna:
+            La apertura de una ventana de Matplotlib con la imagen
         """
         
         #Visualizacion de la imagen usando matplotlib
@@ -114,6 +123,7 @@ class Imagen:
             self.data = np.mean(self.data, axis=2).astype(np.uint8) 
 
     def __len__(self):
+        """Permite acceder a la cantidad total de pixeles de la imagen usando la funcion len()"""
         # Tomamos solo las dos primeras dimensiones del array:
         # shape puede ser (filas, columnas) o (filas, columnas, canales)
         filas, columnas = self.data.shape[:2]
@@ -160,59 +170,43 @@ class Imagen:
         Valor máximo: {valor_max}
         Total de píxeles: {len(self)}
         """
-        
         # Retornamos el texto
         return texto
 
     def __getitem__(self, index):
         """
-        Permite acceder a los píxeles usando corchetes: objeto_imagen[y, x]
+        Permite acceder a los píxeles de la imagen usando corchetes.
+        Ejemplo: objeto_imagen[y, x]
+
+        Parámetros:
+            - index: tupla (y, x) con índices enteros o slices.
+
+        Retorna:
+            - El valor del píxel en la posición indicada.
+            - Un bloque de píxeles si se usan slices.
         """
-        errores = []
+         #Validacion de rango, que los índices estén dentro de los límites de la matriz
+        filas, columnas = self.data.shape[:2]  #soporta imágenes 2D o 3D
 
-        # Caso para cuando se pasan varios índices (Tupla: [y, x])
-        if isinstance(index, tuple):
-            for i in index:
-                if not isinstance(i, (int, slice)):
-                    errores.append(str(i))
-        
-        # Caso cuando se pasa un solo índice (ej: img["a"])
-        elif not isinstance(index, (int, slice)):
-            errores.append(str(index))
+        y, x = index  #asumimos que index es una tupla válida
 
-        #MANEJO DE MENSAJES DE ERROR DE TIPO
-        if len(errores) > 0:
-            #Formateamos todos los errores detectados con comillas
-            errores_con_comillas = []
-            for e in errores:
-                errores_con_comillas.append(f"'{e}'")
-            
-            #Decidimos si el mensaje es en singular o plural
-            if len(errores) == 1:
-                print(f"Error de TIPO: El valor {errores_con_comillas[0]} en {index} debe ser número entero.")
-            else:
-                valores_mal = " y ".join(errores_con_comillas)
-                print(f"Error de TIPO: Los valores {valores_mal} en {index} deben ser números enteros.")
-            
-            return None
+        #Si son enteros, verificamos que estén dentro del rango
+        if isinstance(y, int) and not (0 <= y < filas):
+            raise IndexError(f"Índice de fila fuera de rango: {y}")
+        if isinstance(x, int) and not (0 <= x < columnas):
+            raise IndexError(f"Índice de columna fuera de rango: {x}")
 
-        try:
-            return self.data[index]
-        
-        except IndexError:
-            dimensiones = self.data.shape
-            print(f"Error de RANGO: Las coordenadas {index} exceden el tamaño {dimensiones}.")
-            return None
-            
-        except Exception as e:
-            print(f"Ocurrió un error inesperado: {e}")
-            return None
+        # Si son slices, NumPy ya maneja los límites, no hace falta validarlos
+        return self.data[index]
 
-    def aplicar_filtro(self, filtro=None):
+    def aplicar_filtro(self, filtro = None):
         """
-        Aplica un objeto Filtro sobre la imagen
+        Aplica un objeto de tipo Filtro sobre la imagen
         Parametro:
-        filtro=Filtro - que es un objteto, se le pasa una instancia de la clase Filtro
+
+            - filtro: Filtro es un objeto
+        Retorna:
+
         """
         try:
             #Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
@@ -230,5 +224,5 @@ class Imagen:
             
         #Capturan cualquier error surgida durante el procesamiento interno del filtro.
         except Exception as e:
-            print(f"DEBUG: El tipo de lo que se recibio es: {type(filtro)}")
-            print(f"DEBUG: El error real es: {e}")
+            print(f"El tipo de lo que se recibio es: {type(filtro)}")
+            print(f"El error real es: {e}")
