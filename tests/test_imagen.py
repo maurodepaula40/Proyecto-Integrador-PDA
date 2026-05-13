@@ -307,7 +307,7 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 #PRUEBA DEL METODO aplicar_filtro()
 
-img = Imagen.leer_archivos(RUTA_IMAGEN)
+img = Imagen.cargar(RUTA_IMAGEN)
 ## Detector de bordes inferiores (Bottom Sobel)
 bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
 blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
