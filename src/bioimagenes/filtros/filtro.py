@@ -15,6 +15,7 @@ class Filtro:
     """
 
     def __init__(self, tipo:str, kernel:np.ndarray, tamaño:str):
+
        
         self.tipo = tipo
         self.kernel = kernel
@@ -47,7 +48,7 @@ class Filtro:
             - objeto_imagen: objeto o instancia de la clase Imagen con datos 2D
 
         Retorna:
-            - Una imagen procesada en formato uint8 (valores entre 0 y 255)
+            - Un array de numpy de la imagen procesada en formato uint8 (valores entre 0 y 255)
         """
         # Convertimos a float para preservar precisión durante los cálculos
         matriz_original = objeto_imagen.data.astype(float)

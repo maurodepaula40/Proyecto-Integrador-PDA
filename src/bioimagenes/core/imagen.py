@@ -9,7 +9,7 @@ from bioimagenes.core.historial import Historial
 class Imagen:
     """
     Clase base para el manejo y procesamiento de imágenes digitales.
-
+sa
     Representa una imagen como una matriz de datos y proporciona 
     herramientas para su manipulación, visualización y análisis.
     Permite aplicar operaciones como filtrado, recorte, conversión
@@ -45,7 +45,7 @@ class Imagen:
             raise ValueError("La imagen RGB debe tener 3 canales")
         
         self.original = data.copy()
-        self.__data = self.original.copy()
+        self.data = self.original.copy()
 
         if info is None:
             self.__info = Info()
@@ -177,9 +177,6 @@ class Imagen:
         """
         Permite acceder a los píxeles de la imagen usando corchetes.
         Ejemplo: objeto_imagen[y, x]
-
-        Parámetros:
-            - index: tupla (y, x) con índices enteros o slices.
 
         Retorna:
             - El valor del píxel en la posición indicada.
