@@ -28,7 +28,7 @@ class Historial():
         else:
             self.lista_cambios = lista_cambios  # Usa la lista dada
 
-    def modificar_historial(self, cambio):
+    def modificar_historial(self, cambio:str):
         """
         Agrega un nuevo cambio al historial.
 

@@ -5,6 +5,7 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
+from bioimagenes.filtros.filtro import Filtro
 
 class Imagen:
     """
@@ -140,6 +141,9 @@ class Imagen:
             #Promediamos los canales para pasar a gris
             self.data = np.mean(self.data, axis=2).astype(np.uint8) 
 
+            mensaje = "Se modificó la imagen a blanco y negro"
+            self.historial.modificar_historial(mensaje)            
+
     def __len__(self):
         """Permite acceder a la cantidad total de pixeles de la imagen usando la funcion len()"""
         # Tomamos solo las dos primeras dimensiones del array:
@@ -223,6 +227,7 @@ class Imagen:
         Retorna:
 
         """
+
         try:
             #Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
             #de la imagen (self) para que el filtro pueda acceder a sus atributos.
@@ -231,6 +236,11 @@ class Imagen:
             #Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión procesada.
             if imagen_procesada is not None:
                 self.data = imagen_procesada.data
+
+                #Guardamos en Historial.
+                mensaje = f"Se aplico un filtro {filtro.tipo}"
+                self.historial.modificar_historial(mensaje)
+
                 print("El filtro se aplicó exitosamente sobre el objeto Imagen.")
             
         #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada.
