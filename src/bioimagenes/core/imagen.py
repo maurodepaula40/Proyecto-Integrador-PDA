@@ -9,7 +9,7 @@ from bioimagenes.core.historial import Historial
 class Imagen:
     """
     Clase base para el manejo y procesamiento de imágenes digitales.
-
+    
     Representa una imagen como una matriz de datos y proporciona 
     herramientas para su manipulación, visualización y análisis.
     Permite aplicar operaciones como filtrado, recorte, conversión
@@ -49,10 +49,28 @@ class Imagen:
 
         if info is None:
             self.__info = Info()
-            
+    
+    @property
+    def data(self):
+        """
+        Garantiza el acceso a la matriz de datos de la imagen.
+        Retorna:
+            - np.ndarray: El contenido de la variable privada __data que representa los píxeles.
+        """
+        return self.__data
+    
+    @property
+    def info(self):
+        """
+        Proporciona acceso a los metadatos asociados a la imagen.
+        Retorna:
+            - Info: Objeto de la clase Info que contiene la información técnica de la imagen.
+        """
+        return self.__info    
+    
     # ----  Metodo de clase para leer archivos ----
     @classmethod
-    def cargar(cls, ruta):
+    def cargar(cls, ruta:str):
         """ 
         Metodo de clase que detecta el formato de la imagen. Soporta formatos png, jpg, jpeg, nii, dicom y gz
 
@@ -177,9 +195,6 @@ class Imagen:
         """
         Permite acceder a los píxeles de la imagen usando corchetes.
         Ejemplo: objeto_imagen[y, x]
-
-        Parámetros:
-            - index: tupla (y, x) con índices enteros o slices.
 
         Retorna:
             - El valor del píxel en la posición indicada.
