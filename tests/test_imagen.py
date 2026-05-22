@@ -296,6 +296,6 @@ imagen_filtrada.visualizar()
 img.visualizar()
 
 img.aplicar_filtro(f)
-img.visualizar()
+img.visualizar
 
 print(f)
