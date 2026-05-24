@@ -41,7 +41,7 @@ class ImagenTomografica(Imagen):
     #Definimos los atributos de clase, estos se usarán para el método aplicar_preset() que ajusta la ventana seún el tipo de tejido
     #Los presets son siempre los mismos para todos los objetos por eso son atributos de clase
 
-    _PRESETS_TEJIDO = {             
+    PRESETS_TEJIDO = {             
         "cerebro":   {"centro":  40,  "ancho":  80,  "color": "Purples"}, #colormaps de matplotlib para colorear imagenes
         "hueso":     {"centro": 400,  "ancho": 1800, "color": "bone"},
         "pulmon":    {"centro": -600, "ancho": 1500, "color": "Blues"},
@@ -138,3 +138,34 @@ class ImagenTomografica(Imagen):
         self.seleccionar_corte(indice)
 
         self.mostrar_corte()
+    
+    def ajustar_ventana(self, minimo:float, maximo:float):
+        """Ajusta la ventana de visualización."""
+
+        if minimo >= maximo: #Primero chequeamos que el minimo sea menor q el maximo
+            raise ValueError("El mínimo debe ser menor al máximo") #porque si no no se puede crear una ventana
+
+        self.ventana_actual = (minimo,maximo)  #cambiamos la ventana actual a una nueva definida x el min y max
+
+        self.info.historial.modificar_historial(f"Ventana ajustada: ({minimo},{maximo})") #la ventana nueva se agrega al historial
+
+    def aplicar_preset(self,tipo_tejido):
+        "Configura automáticamente una ventana de visualización predefinida según el tejido seleccionado."
+        
+        if tipo_tejido not in self.PRESETS_TEJIDO: #primeto verificamos que el tipo de tejido sea de los establecidos por nosotros
+
+            raise ValueError("Tejido no disponible")
+
+        preset = self.PRESETS_TEJIDO[tipo_tejido] #nos quedamos con el preset dentro del diccionario
+
+        #buscamos el centro y ancho predefinidos para el tejido en el diccionario de presets
+        centro = preset["centro"] 
+        ancho = preset["ancho"]
+
+        #calculamos el min y max para poder ajustar la ventana para el tejido (hacer que destaque)
+        minimo=centro-ancho/2 
+        maximo=centro+ancho/2
+
+        self.ajustar_ventana(minimo,maximo) #ajustamos la ventana segun el tipo de tejido para que destaque x sobre los otros
+
+        self.info.historial.modificar_historial(f"Preset aplicado: {tipo_tejido}") #lo agregamos al historial
