@@ -25,6 +25,7 @@ class Info:
                               Por defecto: False
             - "tipo_estudio": str.
                               Por defecto: ""
+            - "tamano_voxel": tuple(float, float, float)
 
     - historial : Historial o None
         Instancia de Historial asociada a la imagen.
@@ -50,7 +51,7 @@ class Info:
 
         # Si nos pasan un diccionario lo usamos, si no, creamos uno con valores por defecto
         if datos is not None:
-            self._datos = {
+            self.datos = {
                 "dimensiones": datos.get("dimensiones", (0, 0, 1)),
                 "brillo": int(datos.get("brillo", 0)),  #forzar a que sean 8 bits (entero) porque float usa 64 por defecto (recomendación del docente)
                 "cortada": datos.get("cortada", False),
@@ -59,7 +60,7 @@ class Info:
             }
 
         else:
-            self._datos = {
+            self.datos = {
                 "dimensiones":  (0, 0, 1),
                 "brillo":       0,
                 "cortada":      False,
@@ -87,7 +88,7 @@ class Info:
         """
         if not isinstance(key, str): #si la key no es un string → error
             raise TypeError(f"La clave debe ser un string, se recibió {type(key).__name__}.")
-        return key in self._datos
+        return key in self.datos
      
      def __getitem__(self, key: str):
         """
@@ -106,10 +107,10 @@ class Info:
         El valor asociado a la clave sin modificar el estado del objeto
         """
 
-        if key not in self._datos:  #si la clave no existe → error
+        if key not in self.datos:  #si la clave no existe → error
             raise KeyError(f"'{key}' no es un metadato válido de Info.")
         
-        return self._datos[key] #si existe retorna el dato solicitado
+        return self.datos[key] #si existe retorna el dato solicitado
      
      def cantidad_voxel(self):
         """
@@ -125,7 +126,7 @@ class Info:
         No modifica el estado del objeto
 
         """
-        dimensiones = self._datos["dimensiones"]
+        dimensiones = self.datos["dimensiones"]
 
         if len(dimensiones) != 3:
             raise ValueError(
@@ -147,4 +148,5 @@ class Info:
                 en mm de cada dimensión del vóxel.
                 Por defecto (1.0, 1.0, 1.0).
         """
-        return self._datos["tamano_voxel"]
+        return self.datos["tamano_voxel"]
+     
