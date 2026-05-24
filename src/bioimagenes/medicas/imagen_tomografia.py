@@ -1,10 +1,10 @@
 from bioimagenes.core.imagen import Imagen
 import numpy as np
 from bioimagenes.core.info import Info
+import matplotlib.pyplot as plt
 
 class ImagenTomografica(Imagen):
     """Clase heredada de Imagen especializada en imagenes tomograficas
-    Clase hija de Imagen especializada en imágenes tomográficas (3D).
 
     Extiende Imagen para manejar volúmenes 3D (ej: NIfTI, DICOM),
     proporcionando herramientas para acceder a cortes individuales,
@@ -25,20 +25,17 @@ class ImagenTomografica(Imagen):
         - Si es None → se crea una instancia por defecto.
         - Se le agrega automáticamente el atributo tamaño_voxel si no lo tiene.
 
-    Atributos privados
-    ------------------
-    - __ventana_actual : tuple (min, max)
+    Atributos
+    - ventana_actual : tuple (min, max)
         Rango de intensidades visible en la visualización.
         - Ambos valores deben ser numéricos (int o float).
         - min debe ser estrictamente menor que max.
-        - Se inicializa con (data.min(), data.max()).
-        - Solo modificable mediante ajustar_ventana().
+        - Se inicializa con (data.min(), data.max())
 
-    - __corte_actual : int
+    - corte_actual : int
         Índice del corte actualmente seleccionado.
         - Debe ser int en el rango [0, número_de_cortes - 1].
         - Se inicializa en 0.
-        - Solo modificable mediante seleccionar_corte().
     """
     
     #Definimos los atributos de clase, estos se usarán para el método aplicar_preset() que ajusta la ventana seún el tipo de tejido
@@ -58,5 +55,78 @@ class ImagenTomografica(Imagen):
         super().__init__(data, info)
         
         #definir atributos privados
-        self.__ventana_actual = (float(data.min()), float(data.max()))
-        self.__corte_actual = 0 #arranca en el primer slice
+        self.ventana_actual = (float(data.min()), float(data.max()))
+        self.corte_actual = 0 #arranca en el primer slice
+
+        # si el usuario pasó un Info lo asignamos, si no ya lo creó super()
+        if info is not None:
+            self.info = info
+
+    
+    def obtener_corte(self, indice:int):
+        """ Devuelve un corte (slice) específico del volumen.
+        
+        Retorna:  np.ndarray. Matriz 2D del corte solicitado."""
+        # verificar que sea un volumen
+        if self.data.ndim != 3:
+            raise ValueError(
+                "La imagen no es tomográfica (debe ser 3D)"
+            )
+         
+         # cantidad total de cortes
+        total_cortes = self.data.shape[2]
+
+        # verificar rango
+        if indice < 0 or indice >= total_cortes:
+            raise IndexError(
+                f"Corte fuera de rango. "
+                f"Hay {total_cortes} cortes"
+            )
+
+        corte = self.data[:,:,indice]  #el tercer elemento corresponde a la cantidad de slices
+
+        return corte
+    
+    def seleccionar_corte(self, indice:int):
+        """Selecciona un corte del volumen y lo guarda como corte actual para trabajar sobre él"""
+        
+        # verificamos que el corte exista
+        self.obtener_corte(indice)
+
+        # guardamos el índice
+        self.corte_actual = indice
+
+        # registrar historial
+        self.info.historial.modificar_historial(f"Corte {indice} seleccionado")
+
+    def mostrar_corte(self):
+        """Muestra el corte actualmente seleccionado aplicando la ventana médica."""
+
+        # verificar si hay corte seleccionado
+        if self.corte_actual is None:
+            raise ValueError("No hay un corte seleccionado")
+
+        # obtener corte actual
+        corte = self.obtener_corte(self.corte_actual)
+
+        # obtener limites de ventana
+        minimo,maximo = self.ventana_actual
+
+        # aplicar ventana
+        corte = np.clip(corte,minimo,maximo)  
+        #clip convierte los valores > maximo en en maximo y los valores < minimo en el minimo,
+        # para acotar la ventana a los limites que queremos
+
+        # normalizar para visualizar
+        corte = (corte-minimo)/(maximo-minimo) #reestingimos los valores entre 0 y 1 para que plt.imshow funcione mejor
+
+        # mostrar
+        plt.imshow(corte,cmap="gray")
+
+        plt.title(f"Corte {self.corte_actual}")
+
+        plt.axis("off")
+
+        plt.show()
+
+  
