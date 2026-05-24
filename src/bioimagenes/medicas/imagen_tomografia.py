@@ -129,4 +129,12 @@ class ImagenTomografica(Imagen):
 
         plt.show()
 
-  
+    #método mas directo para acceder y visualizar un corte al mismo tiempo,
+    #solo combina los metodos seleccionar_corte y mostrar_corte
+    
+    def mostrar_slice(self, indice:int):
+        """Visualiza directamente un corte del volumen."""
+
+        self.seleccionar_corte(indice)
+
+        self.mostrar_corte()
