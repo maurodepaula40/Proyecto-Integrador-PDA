@@ -41,15 +41,26 @@ class Imagen:
         if data.ndim not in (2, 3):
             raise ValueError(f"data debe tener 2 o 3 dimensiones, no {data.ndim}")
         
-        #verificar que si la imagen es 3D tenga los 3 canales
-        if data.ndim == 3 and data.shape[2] != 3:
-            raise ValueError("La imagen RGB debe tener 3 canales")
-        
+        #verificar que si la imagen es RGB tenga los 3 canales
+        if data.ndim == 3:
+            if data.shape[2] in [3]:
+                # Si es RGB común, nos quedamos con un canal
+                data_procesada = data[:, :, 0]
+            else:
+                # ¡Es tu tomografía NIfTI! Mantenemos las 3 dimensiones intactas 
+                # o seleccionamos el corte central temporalmente:
+                data_procesada = data
+        else:
+            data_procesada = data
+
+        # En lugar de super().__init__(data, info), asegúrate de pasarle la procesada:        
         self.original = data.copy()
         self.__data = self.original.copy()
 
         if info is None:
             self.__info = Info()
+        
+        self.historial = Historial()
     
     @property
     def data(self):
@@ -108,6 +119,7 @@ class Imagen:
     def visualizar(self):
         """
         Permite mostrar una imagen almacenada utilizando la librería Matplotlib
+        Para ver imagenes tomograficas, primero se debe obtener un slice o corte y despues visualizar
 
         Retorna:
             La apertura de una ventana de Matplotlib con la imagen
@@ -136,13 +148,23 @@ class Imagen:
     def bn(self):
         """
         Metodo que convierte una imagen RGB a blanco y negro.
+        Retorna una nueva instancia de la clase Imagen.
         """
         if len(self.data.shape) == 3: # verificamos la dimension de la imagen
             #Promediamos los canales para pasar a gris
-            self.data = np.mean(self.data, axis=2).astype(np.uint8) 
+            blanco_negro = np.mean(self.data, axis=2).astype(np.uint8)
 
+            #guardamos en el historial el cambio 
             mensaje = "Se modificó la imagen a blanco y negro"
-            self.historial.modificar_historial(mensaje)            
+            self.historial.modificar_historial(mensaje) 
+
+            # retornamos una nueva instancia de la clase Imagen
+            return Imagen(blanco_negro, self.info) 
+        
+        #si la imagen es 2D, se devuelve a si misma
+        return self
+
+                       
 
     def __len__(self):
         """Permite acceder a la cantidad total de pixeles de la imagen usando la funcion len()"""
@@ -218,36 +240,40 @@ class Imagen:
         # Si son slices, NumPy ya maneja los límites, no hace falta validarlos
         return self.data[index]
 
-    def aplicar_filtro(self, filtro = None):
+    def aplicar_filtro(self, filtro: object = None):
         """
-        Aplica un objeto de tipo Filtro sobre la imagen
+        Aplica un objeto de tipo Filtro sobre la imagen. Registra el evento en la imagen original
         Parametro:
-
             - filtro: Filtro es un objeto
         Retorna:
-
+            - una nueva instancia de la clase Imagen
         """
+        if filtro is None:
+            print("No se proporcionó ningun filtro")
+            return self
 
         try:
             #Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
             #de la imagen (self) para que el filtro pueda acceder a sus atributos.
-            imagen_procesada = filtro.aplicar(self)
+            imagen_filtrada = filtro.aplicar(self)
             
             #Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión procesada.
-            if imagen_procesada is not None:
-                self.data = imagen_procesada.data
-
-                #Guardamos en Historial.
-                mensaje = f"Se aplico un filtro {filtro.tipo}"
-                self.historial.modificar_historial(mensaje)
+            if imagen_filtrada is not None:
+                #Registramos el cambio en el historial de la original
+                self.__historial.modificar_historial(f"Se aplico un filtro {filtro.tipo}")
 
                 print("El filtro se aplicó exitosamente sobre el objeto Imagen.")
+
+                #Retornamos un nuevo objeto, no modificamos self.__data
+                return Imagen(imagen_filtrada.data, self.info)
             
         #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada.
         except AttributeError:
             print("Error: El objeto filtro no es válido.")
-            
+            return self
+        
         #Capturan cualquier error surgida durante el procesamiento interno del filtro.
         except Exception as e:
             print(f"El tipo de lo que se recibio es: {type(filtro)}")
             print(f"El error real es: {e}")
+            return self

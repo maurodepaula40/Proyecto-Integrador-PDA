@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.abspath("src"))
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros.filtro import Filtro
+#from bioimagenes.filtros.filtro import Filtro
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -271,31 +271,36 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 #PRUEBA DEL METODO aplicar_filtro()
 
-img = Imagen.cargar(RUTA_IMAGEN)
+#img = Imagen.cargar(RUTA_IMAGEN)
 ## Detector de bordes inferiores (Bottom Sobel)
-bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
-blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
-suavizado = np.ones((3,3))
+#bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
+#blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
+#suavizado = np.ones((3,3))
 ##Outline
-ouutline = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+#ouutline = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
 ##Sharpen
-sharpen = np.array([[0,-1,0],[-1,5,-1],[0,-1,0]])
+#sharpen = np.array([[0,-1,0],[-1,5,-1],[0,-1,0]])
 
 ## Detector de bordes superiores (Top Sobel)
-topSobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
+#topSobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
 
 ## Detector de bordes izquierdos (Left Sobel)
-leftSobel = np.array([[1,0,-1],[2,0,-2],[1,0,-1]])
+#leftSobel = np.array([[1,0,-1],[2,0,-2],[1,0,-1]])
 ## Detector de bordes derechos (Right Sobel)
-rightSobel = np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
+#rightSobel = np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
 
-f = Filtro(tipo="rightSobel", kernel=rightSobel, tamaño="3x3")
+#f = Filtro(tipo="rightSobel", kernel=rightSobel, tamaño="3x3")
 #***** Aplicamos el filtro a la imagen *****
-imagen_filtrada = f.aplicar(img)
-imagen_filtrada.visualizar()
-img.visualizar()
+##imagen_filtrada = f.aplicar(img)
+#imagen_filtrada.visualizar()
+#img.visualizar()
 
-img.aplicar_filtro(f)
-img.visualizar
+#img.aplicar_filtro(f)
+#img.visualizar
 
-print(f)
+#print(f)
+
+img_radiografica= Imagen.cargar("tests/imagenes_test/radiografias/sample/216840111366964013307756408102012093111819763_01-114-013.png")
+img_radiografica.visualizar()
+
+
