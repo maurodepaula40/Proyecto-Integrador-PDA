@@ -8,6 +8,7 @@ from bioimagenes.core.historial import Historial
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from bioimagenes.medicas.imagen_termografica import imagen_termografica
 
 #Prueba con imagen en escala de grises
 
@@ -300,7 +301,7 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 #print(f)
 
-img_radiografica= Imagen.cargar("tests/imagenes_test/radiografias/sample/216840111366964013307756408102012093111819763_01-114-013.png")
-img_radiografica.visualizar()
-
-
+img_termografica= imagen_termografica.cargar(RUTA_IMAGEN)
+img_termografica.visualizar()
+img_mapa_calor = img_termografica.mapa_calor()
+print(img_mapa_calor.data.shape)

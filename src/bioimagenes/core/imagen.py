@@ -44,6 +44,7 @@ class Imagen:
         #verificar que si la imagen es RGB tenga los 3 canales
         if data.ndim == 3:
             if data.shape[2] in [3]:
+
                 # Si es RGB común, nos quedamos con un canal
                 data_procesada = data[:, :, 0]
             else:
@@ -52,13 +53,12 @@ class Imagen:
                 data_procesada = data
         else:
             data_procesada = data
-
-        # En lugar de super().__init__(data, info), asegúrate de pasarle la procesada:        
+        
         self.original = data.copy()
         self.__data = self.original.copy()
 
         if info is None:
-            self.__info = Info()
+            self.info = Info()
         
         self.historial = Historial()
     
@@ -70,21 +70,13 @@ class Imagen:
             - np.ndarray: El contenido de la variable privada __data que representa los píxeles.
         """
         return self.__data
-    
-    @property
-    def info(self):
-        """
-        Proporciona acceso a los metadatos asociados a la imagen.
-        Retorna:
-            - Info: Objeto de la clase Info que contiene la información técnica de la imagen.
-        """
-        return self.__info    
+       
     
     # ----  Metodo de clase para leer archivos ----
     @classmethod
     def cargar(cls, ruta:str):
         """ 
-        Metodo de clase que detecta el formato de la imagen. Soporta formatos png, jpg, jpeg, nii, dicom y gz
+        Metodo de clase que se usa para cargar la imagen. Soporta formatos png, jpg, jpeg, nii, dicom y gz
 
         Parametro:
             - ruta: recibe la direccion de la imagen como string
@@ -137,10 +129,12 @@ class Imagen:
 
         if img.ndim == 2:
             im = ax.imshow(img, cmap="gray", interpolation="none")
-            ax.set_title("Escala de grises")
+            titulo = getattr(self, "titulo_actual", "Imagen en Escala de Grises")
+            ax.set_title(titulo)
         else:
             ax.imshow(img, interpolation="none")
-            ax.set_title("RGB")
+            titulo = getattr(self, "titulo_actual", "Imagen RGB")
+            ax.set_title(titulo)
 
         plt.tight_layout()
         plt.show()
