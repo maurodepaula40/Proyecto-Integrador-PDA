@@ -1,3 +1,4 @@
+from bioimagenes.core.imagen import Imagen
 import numpy as np
 from scipy.signal import convolve2d
 
@@ -40,7 +41,7 @@ class Filtro:
         """
         Método que realiza la operación de convolución para imágenes 2D en escala de grises.
 
-        NOTA: Este método está optimizado específicamente para imágenes 2D (escala de grises).
+        NOTA: Este método está diseñado específicamente para imágenes 2D (escala de grises).
         Si necesita procesar imágenes en color, considere adaptarlo para procesar cada canal por separado.
 
         Parámetro:
@@ -75,10 +76,10 @@ class Filtro:
         else:
             resultado = resultado
 
-        # Aseguramos que los valores están en el rango válido [0, 255] y convertimos a uint8
+        # Aseguramos que los valores están en el rango (0, 255) y convertimos a uint8
         return np.clip(resultado, 0, 255).astype(np.uint8)
 
-    def aplicar(self, imagen):
+    def aplicar(self, imagen:object):
         """
         Aplica el filtro de convolución a una imagen.
     
@@ -91,8 +92,12 @@ class Filtro:
         # Obtenemos la matriz procesada llamando al método convolucion
         matriz = self.convolucion(imagen)
     
-        # Creamos un nuevo objeto Imagen con los datos procesados
+        # Creamos un nuevo objeto Imagen con los datos filtrados
         imagen_filtrada = Imagen(data=matriz)
     
-        # Retornamos la instancia procesada
+        # Retornamos la instancia nueva filtrada
         return imagen_filtrada
+    
+
+    def kernels(self):
+        pass

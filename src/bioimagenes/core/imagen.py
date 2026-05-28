@@ -18,17 +18,18 @@ class Imagen:
     
     Además, integra metadatos mediante la clase Info y mantiene 
     un registro de cambios a través de la clase Historial 
-
-    Parámetros:
-        - data: recibe un np.ndarray, contiene los valores de los píxeles de la imagen.
-                Puede ser 2D (escala de grises) o 3D (RGB).
-        - info : recibe un objeto llamado Info que contiene los metadatos asociados a la imagen.
-                 Si no se proporciona, se genera uno por defecto.
-    Errores:
-        - ValueError si data no tiene datos, si data no es de 2 o 3 dimensiones y si es una clase RGB que no tiene 3 canales
-        - TypeError si data no es un np.ndarray
     """
     def __init__(self, data: np.ndarray, info: Info = None):
+        """
+        Parámetros:
+            - data: recibe un np.ndarray, contiene los valores de los píxeles de la imagen.
+                Puede ser 2D (escala de grises) o 3D (RGB).
+            - info: recibe un objeto Info que contiene los metadatos asociados a la imagen.
+                 Si no se proporciona, se genera uno por defecto.
+        Errores:
+            - ValueError si data no tiene datos, si data no es de 2 o 3 dimensiones y si es una imagen RGB que no tiene 3 canales
+            - TypeError si data no es un np.ndarray
+        """
        
         #Comprobar de que data sea valido
         if data is None:
@@ -58,7 +59,7 @@ class Imagen:
         self.__data = self.original.copy()
 
         if info is None:
-            self.info = Info()
+            self._info = Info()
         
         self.historial = Historial()
     
@@ -70,7 +71,15 @@ class Imagen:
             - np.ndarray: El contenido de la variable privada __data que representa los píxeles.
         """
         return self.__data
-       
+    
+    @property
+    def info(self):
+        """
+        Proporciona acceso a los metadatos asociados a la imagen.
+        Retorna:
+            - Info: Objeto de la clase Info que contiene la información técnica de la imagen.
+        """
+        return self._info    
     
     # ----  Metodo de clase para leer archivos ----
     @classmethod
@@ -271,3 +280,40 @@ class Imagen:
             print(f"El tipo de lo que se recibio es: {type(filtro)}")
             print(f"El error real es: {e}")
             return self
+        
+    def normalizar(self, modo: str):
+        """
+        Normaliza los valores de píxeles de la imagen al rango indicado.
+        Modifica self.data directamente y registra el cambio en el historial.
+
+        Parámetros:
+            -modo : str
+                "float64"   → convierte a float64 con valores entre 0.0 y 1.0.
+                            Útil para análisis matemático y aplicación de filtros.
+                "8bits"     → convierte a uint8 con valores entre 0 y 255.
+                            Útil para visualización estándar.
+        Error:
+            ValueError: Si se ingresa un modo que no coincida con las opciones válidas. 
+        """
+        
+        if modo not in ("float64", "8bits"):
+            raise ValueError(f"modo debe ser float64 o 8bits, no '{modo}'")
+ 
+        datos = self.data.astype(np.float64)
+        minimo = datos.min()
+        maximo = datos.max()
+ 
+        # Evitamos división por cero si la imagen es completamente uniforme
+        if maximo == minimo:
+            datos_norm = np.zeros_like(datos)
+        else:
+            datos_norm = (datos - minimo) / (maximo - minimo)  # siempre queda en 0-1
+ 
+        if modo == "0-1":
+            self.data = datos_norm                              # float64, rango 0.0–1.0
+        else:
+            self.data = (datos_norm * 255).astype(np.uint8)    # uint8, rango 0–255
+ 
+        # Registramos en el historial si existe
+        if hasattr(self, "info") and self.info is not None:
+            self.info.historial.modificar_historial(f"Normalización aplicada: modo {modo}")

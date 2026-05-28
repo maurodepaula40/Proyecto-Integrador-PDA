@@ -4,11 +4,12 @@ import os
 sys.path.append(os.path.abspath("src"))
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.historial import Historial
-#from bioimagenes.filtros.filtro import Filtro
+from bioimagenes.filtros.filtro import Filtro
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 from bioimagenes.medicas.imagen_termografica import imagen_termografica
+from flirimageextractor import FlirImageExtractor
 
 #Prueba con imagen en escala de grises
 
@@ -276,7 +277,7 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 ## Detector de bordes inferiores (Bottom Sobel)
 #bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
 #blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
-#suavizado = np.ones((3,3))
+
 ##Outline
 #ouutline = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
 ##Sharpen
@@ -303,5 +304,28 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 img_termografica= imagen_termografica.cargar(RUTA_IMAGEN)
 img_termografica.visualizar()
-img_mapa_calor = img_termografica.mapa_calor()
-print(img_mapa_calor.data.shape)
+img_fiebre = img_termografica.detectar_puntos_calientes(20)
+img_fiebre.visualizar()
+
+img_segmentada = img_termografica.segmentar_por_rangos(70,100)
+img_segmentada.visualizar()
+
+img_puntos_calientes = img_termografica.detectar_puntos_calientes(temperatura=70)
+img_puntos_calientes.visualizar()
+
+#flir = FlirImageExtractor()
+#flir.process_image(flir_img_file=RUTA_IMAGEN)
+
+matriz_temperatura = flir.get_thermal_np()
+
+temp_max = np.amax(matriz_temperatura)
+temp_min = np.amin(matriz_temperatura)
+
+print(temp_max)
+print(temp_min)
+img_termografica = imagen_termografica(data=matriz_temperatura, info=None)
+img_segmentada = img_termografica.detectar_puntos_calientes(30)
+img_segmentada.visualizar()
+
+
+
