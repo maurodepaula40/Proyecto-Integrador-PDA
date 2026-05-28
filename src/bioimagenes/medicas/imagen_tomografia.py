@@ -244,4 +244,17 @@ class ImagenTomografica(Imagen):
             # Registramos en el historial
             self.info.historial.modificar_historial(f"Corte {self.corte_actual} visualizado con colores por tejido")
     
-            return imagen_rgb                                                                 
+            return imagen_rgb      
+
+        def mostrar_historial(self):
+            """
+            Imprime en pantalla todos los cambios registrados en el historial
+            de la imagen, numerados y en orden cronológico.
+            """
+            if len(self.info.historial) == 0:
+                print("El historial está vacío.")
+                return
+    
+            print(f"Historial de cambios ({len(self.info.historial)} registros)")
+            for numero, cambio in enumerate(self.info.historial, start=1):
+                print(f"  {numero}. {cambio}")                                                           
