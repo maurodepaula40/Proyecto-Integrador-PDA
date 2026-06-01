@@ -5,7 +5,6 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros.filtro import Filtro
 
 class Imagen:
     """
