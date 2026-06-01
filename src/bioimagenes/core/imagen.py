@@ -55,11 +55,10 @@ class Imagen:
         else:
             data_procesada = data
         
-        self.original = data.copy()
+        self.original = data_procesada.copy()
         self.__data = self.original.copy()
 
-        if info is None:
-            self._info = Info()
+        self._info = info if info is not None else Info()
         
         self.historial = Historial()
     
