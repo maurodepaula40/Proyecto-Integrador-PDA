@@ -5,12 +5,12 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros import filtro as fl
+from bioimagenes.filtros.filtro import Filtro
 
 class Imagen:
     """
     Clase base para el manejo y procesamiento de imágenes digitales.
-
+    
     Representa una imagen como una matriz de datos y proporciona 
     herramientas para su manipulación, visualización y análisis.
     Permite aplicar operaciones como filtrado, recorte, conversión
@@ -20,16 +20,17 @@ class Imagen:
     un registro de cambios a través de la clase Historial 
     """
     def __init__(self, data: np.ndarray, info: Info = None):
-        """ 
-        Inicializa una instancia de la clase Imagen.
-        Parámetros
-        ---------- 
-        data : np.ndarray Matriz que contiene los valores de los píxeles de la imagen.
-        Puede ser 2D (escala de grises) o 3D (RGB).
-
-        info : Info Objeto que contiene los metadatos asociados a la imagen.
-        Si no se proporciona, se genera uno por defecto.
-        """ 
+        """
+        Parámetros:
+            - data: recibe un np.ndarray, contiene los valores de los píxeles de la imagen.
+                Puede ser 2D (escala de grises) o 3D (RGB).
+            - info: recibe un objeto Info que contiene los metadatos asociados a la imagen.
+                 Si no se proporciona, se genera uno por defecto.
+        Errores:
+            - ValueError si data no tiene datos, si data no es de 2 o 3 dimensiones y si es una imagen RGB que no tiene 3 canales
+            - TypeError si data no es un np.ndarray
+        """
+       
         #Comprobar de que data sea valido
         if data is None:
             raise ValueError ("La imagen no tiene datos (data es None)")
@@ -41,21 +42,57 @@ class Imagen:
         if data.ndim not in (2, 3):
             raise ValueError(f"data debe tener 2 o 3 dimensiones, no {data.ndim}")
         
-        #verificar que si la imagen es 3D tenga los 3 canales
-        if data.ndim == 3 and data.shape[2] != 3:
-            raise ValueError("La imagen RGB debe tener 3 canales")
+        #verificar que si la imagen es RGB tenga los 3 canales
+        if data.ndim == 3:
+            if data.shape[2] in [3]:
+
+                # Si es RGB común, nos quedamos con un canal
+                data_procesada = data[:, :, 0]
+            else:
+                # ¡Es tu tomografía NIfTI! Mantenemos las 3 dimensiones intactas 
+                # o seleccionamos el corte central temporalmente:
+                data_procesada = data
+        else:
+            data_procesada = data
         
         self.original = data.copy()
-        self.data = self.original.copy()
+        self.__data = self.original.copy()
 
         if info is None:
-            self.info = Info()
-            
+            self._info = Info()
+        
+        self.historial = Historial()
+    
+    @property
+    def data(self):
+        """
+        Garantiza el acceso a la matriz de datos de la imagen.
+        Retorna:
+            - np.ndarray: El contenido de la variable privada __data que representa los píxeles.
+        """
+        return self.__data
+    
+    @property
+    def info(self):
+        """
+        Proporciona acceso a los metadatos asociados a la imagen.
+        Retorna:
+            - Info: Objeto de la clase Info que contiene la información técnica de la imagen.
+        """
+        return self._info    
+    
     # ----  Metodo de clase para leer archivos ----
     @classmethod
-    def leer_archivos(cls, ruta):
+    def cargar(cls, ruta:str):
         """ 
-        Metodo de clase que detecta el formato de la imagen y retorna una instancia de la clase Imagen
+        Metodo de clase que se usa para cargar la imagen. Soporta formatos png, jpg, jpeg, nii, dicom y gz
+
+        Parametro:
+            - ruta: recibe la direccion de la imagen como string
+        Retorna:
+            Una instancia de la clase Imagen
+        Errores:
+            Retorna ValueError si el formato de la imagen no es soportado
         """
         extension = os.path.splitext(ruta)[1].lower()   #accede a la ruta del archivo y obtiene en string la extension de la imagen ".png", ".nii"
                                                         # os.path.splitext es una función de Python en el módulo os.path que se 
@@ -82,7 +119,11 @@ class Imagen:
     
     def visualizar(self):
         """
-        Visualiza la imagen utilizando matplotlib
+        Permite mostrar una imagen almacenada utilizando la librería Matplotlib
+        Para ver imagenes tomograficas, primero se debe obtener un slice o corte y despues visualizar
+
+        Retorna:
+            La apertura de una ventana de Matplotlib con la imagen
         """
         
         #Visualizacion de la imagen usando matplotlib
@@ -97,10 +138,12 @@ class Imagen:
 
         if img.ndim == 2:
             im = ax.imshow(img, cmap="gray", interpolation="none")
-            ax.set_title("Escala de grises")
+            titulo = getattr(self, "titulo_actual", "Imagen en Escala de Grises")
+            ax.set_title(titulo)
         else:
             ax.imshow(img, interpolation="none")
-            ax.set_title("RGB")
+            titulo = getattr(self, "titulo_actual", "Imagen RGB")
+            ax.set_title(titulo)
 
         plt.tight_layout()
         plt.show()
@@ -108,12 +151,26 @@ class Imagen:
     def bn(self):
         """
         Metodo que convierte una imagen RGB a blanco y negro.
+        Retorna una nueva instancia de la clase Imagen.
         """
         if len(self.data.shape) == 3: # verificamos la dimension de la imagen
             #Promediamos los canales para pasar a gris
-            self.data = np.mean(self.data, axis=2).astype(np.uint8) 
+            blanco_negro = np.mean(self.data, axis=2).astype(np.uint8)
+
+            #guardamos en el historial el cambio 
+            mensaje = "Se modificó la imagen a blanco y negro"
+            self.historial.modificar_historial(mensaje) 
+
+            # retornamos una nueva instancia de la clase Imagen
+            return Imagen(blanco_negro, self.info) 
+        
+        #si la imagen es 2D, se devuelve a si misma
+        return self
+
+                       
 
     def __len__(self):
+        """Permite acceder a la cantidad total de pixeles de la imagen usando la funcion len()"""
         # Tomamos solo las dos primeras dimensiones del array:
         # shape puede ser (filas, columnas) o (filas, columnas, canales)
         filas, columnas = self.data.shape[:2]
@@ -160,75 +217,103 @@ class Imagen:
         Valor máximo: {valor_max}
         Total de píxeles: {len(self)}
         """
-        
         # Retornamos el texto
         return texto
 
     def __getitem__(self, index):
         """
-        Permite acceder a los píxeles usando corchetes: objeto_imagen[y, x]
+        Permite acceder a los píxeles de la imagen usando corchetes.
+        Ejemplo: objeto_imagen[y, x]
+
+        Retorna:
+            - El valor del píxel en la posición indicada.
+            - Un bloque de píxeles si se usan slices.
         """
-        errores = []
+         #Validacion de rango, que los índices estén dentro de los límites de la matriz
+        filas, columnas = self.data.shape[:2]  #soporta imágenes 2D o 3D
 
-        # Caso para cuando se pasan varios índices (Tupla: [y, x])
-        if isinstance(index, tuple):
-            for i in index:
-                if not isinstance(i, (int, slice)):
-                    errores.append(str(i))
-        
-        # Caso cuando se pasa un solo índice (ej: img["a"])
-        elif not isinstance(index, (int, slice)):
-            errores.append(str(index))
+        y, x = index  #asumimos que index es una tupla válida
 
-        #MANEJO DE MENSAJES DE ERROR DE TIPO
-        if len(errores) > 0:
-            #Formateamos todos los errores detectados con comillas
-            errores_con_comillas = []
-            for e in errores:
-                errores_con_comillas.append(f"'{e}'")
-            
-            #Decidimos si el mensaje es en singular o plural
-            if len(errores) == 1:
-                print(f"Error de TIPO: El valor {errores_con_comillas[0]} en {index} debe ser número entero.")
-            else:
-                valores_mal = " y ".join(errores_con_comillas)
-                print(f"Error de TIPO: Los valores {valores_mal} en {index} deben ser números enteros.")
-            
-            return None
+        #Si son enteros, verificamos que estén dentro del rango
+        if isinstance(y, int) and not (0 <= y < filas):
+            raise IndexError(f"Índice de fila fuera de rango: {y}")
+        if isinstance(x, int) and not (0 <= x < columnas):
+            raise IndexError(f"Índice de columna fuera de rango: {x}")
 
-        try:
-            return self.data[index]
-        
-        except IndexError:
-            dimensiones = self.data.shape
-            print(f"Error de RANGO: Las coordenadas {index} exceden el tamaño {dimensiones}.")
-            return None
-            
-        except Exception as e:
-            print(f"Ocurrió un error inesperado: {e}")
-            return None
+        # Si son slices, NumPy ya maneja los límites, no hace falta validarlos
+        return self.data[index]
 
-    def aplicar_filtro(self, filtro=None):
+    def aplicar_filtro(self, filtro: object = None):
         """
-        Aplica un objeto Filtro sobre la imagen
+        Aplica un objeto de tipo Filtro sobre la imagen. Registra el evento en la imagen original
         Parametro:
-        filtro=Filtro - que es un objteto, se le pasa una instancia de la clase Filtro
+            - filtro: Filtro es un objeto
+        Retorna:
+            - una nueva instancia de la clase Imagen
         """
+        if filtro is None:
+            print("No se proporcionó ningun filtro")
+            return self
+
         try:
             #Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
             #de la imagen (self) para que el filtro pueda acceder a sus atributos.
-            imagen_procesada = filtro.aplicar(self)
+            imagen_filtrada = filtro.aplicar(self)
             
             #Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión procesada.
-            if imagen_procesada is not None:
-                self.data = imagen_procesada.data
+            if imagen_filtrada is not None:
+                #Registramos el cambio en el historial de la original
+                self.__historial.modificar_historial(f"Se aplico un filtro {filtro.tipo}")
+
                 print("El filtro se aplicó exitosamente sobre el objeto Imagen.")
+
+                #Retornamos un nuevo objeto, no modificamos self.__data
+                return Imagen(imagen_filtrada.data, self.info)
             
         #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada.
         except AttributeError:
             print("Error: El objeto filtro no es válido.")
-            
+            return self
+        
         #Capturan cualquier error surgida durante el procesamiento interno del filtro.
         except Exception as e:
-            print(f"DEBUG: El tipo de lo que se recibio es: {type(filtro)}")
-            print(f"DEBUG: El error real es: {e}")
+            print(f"El tipo de lo que se recibio es: {type(filtro)}")
+            print(f"El error real es: {e}")
+            return self
+        
+    def normalizar(self, modo: str):
+        """
+        Normaliza los valores de píxeles de la imagen al rango indicado.
+        Modifica self.data directamente y registra el cambio en el historial.
+
+        Parámetros:
+            -modo : str
+                "float64"   → convierte a float64 con valores entre 0.0 y 1.0.
+                            Útil para análisis matemático y aplicación de filtros.
+                "8bits"     → convierte a uint8 con valores entre 0 y 255.
+                            Útil para visualización estándar.
+        Error:
+            ValueError: Si se ingresa un modo que no coincida con las opciones válidas. 
+        """
+        
+        if modo not in ("float64", "8bits"):
+            raise ValueError(f"modo debe ser float64 o 8bits, no '{modo}'")
+ 
+        datos = self.data.astype(np.float64)
+        minimo = datos.min()
+        maximo = datos.max()
+ 
+        # Evitamos división por cero si la imagen es completamente uniforme
+        if maximo == minimo:
+            datos_norm = np.zeros_like(datos)
+        else:
+            datos_norm = (datos - minimo) / (maximo - minimo)  # siempre queda en 0-1
+ 
+        if modo == "0-1":
+            self.data = datos_norm                              # float64, rango 0.0–1.0
+        else:
+            self.data = (datos_norm * 255).astype(np.uint8)    # uint8, rango 0–255
+ 
+        # Registramos en el historial si existe
+        if hasattr(self, "info") and self.info is not None:
+            self.info.historial.modificar_historial(f"Normalización aplicada: modo {modo}")

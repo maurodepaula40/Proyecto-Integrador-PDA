@@ -4,10 +4,12 @@ import os
 sys.path.append(os.path.abspath("src"))
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros import filtro
+from bioimagenes.filtros.filtro import Filtro
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from bioimagenes.medicas.imagen_termografica import imagen_termografica
+from flirimageextractor import FlirImageExtractor
 
 #Prueba con imagen en escala de grises
 
@@ -16,7 +18,6 @@ import cv2
 #img.visualizar()
 
 #prueba con imagen RGB
-#hola = np.ndarray()
 #dato = np.random.randint(0, 255, (100, 100,3)) 
 #img = Imagen(data=dato, info=None)
 #img.visualizar()
@@ -34,76 +35,41 @@ import cv2
 
 #Prueba con una imagen termografica
 
-#img =cv2.imread(r"N11102.jpg",  cv2.IMREAD_GRAYSCALE)
-#prueba = Imagen(data=img, info=None)
-#prueba.visualizar()
-#print(img.shape)
-
-#Prueba con imagen RADIOGRAFICA
-
-#data=cv2.imread(r"329608354535639464795481936214199434429_kzcyhb.png", cv2.IMREAD_GRAYSCALE)
-#img = Imagen(data=data, info=None)
+#img =Imagen.cargar("tests/imagenes_test/termografias/N11102.jpg")
 #img.visualizar()
+#print(img)
 
-#Prueba con imagen TOMOGRAFICA
-
-#imagen_tomografia = nib.load("AC421363f.nii")
-#data_tomografia = imagen_tomografia.get_fdata()
-#print(data_tomografia)
-
-#Usando las siguientes 4 lineas, el slice no se ve porque esta fuera de rango 
-#plt.imshow(data[:, :, data.shape[2]//2], cmap="gray")
-#plt.title("Slice axial")
-#plt.axis("off")
-#plt.show()
-
-#Aca lo normalizamos y se ve el slice
-#slice_img = data_tomografia[:, :, data_tomografia.shape[2]//2]
-
-#plt.imshow(slice_img, cmap="gray", vmin=slice_img.min(), vmax=slice_img.max())
-#plt.title("Slice axial")
-#plt.axis("off")
-#plt.show()
-#imagen_radiografica = Imagen.leer_archivos("N11102.jpg")
+#imagen_radiografica = Imagen.cargar("tests/imagenes_test/termografias/N11103.jpg")
 #imagen_radiografica.visualizar()
 
-
-#imagen_rgb = Imagen.leer_archivos("tests/imagenes_test/espacios-color-fotografia.jpg")
-#imagen_rgb.visualizar()
-#imagen_rgb.bn()
-#imagen_rgb.visualizar()
-#imagen_rgb = Imagen.leer_archivos("espacios-color-fotografia.jpg")
-#imagen_rgb.visualizar()
-#imagen_rgb.bn()
-#imagen_rgb.visualizar()
 
 
 # Ruta de la imagen de prueba
 RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 # # TEST 1: Cargar imagen real y verificar len()
-# print("TEST 1: Verificar len() con imagen real")
+#print("TEST 1: Verificar len() con imagen real")
 
 # # Verificamos que el archivo existe
-# if os.path.exists(RUTA_IMAGEN):
-#     # Cargamos la imagen usando el método de clase
-#     img = Imagen.leer_archivos(RUTA_IMAGEN)
+#if os.path.exists(RUTA_IMAGEN):
+    # Cargamos la imagen usando el método de clase
+#    img = Imagen.cargar(RUTA_IMAGEN)
     
 #     # Obtenemos el resultado de len()
-#     resultado = len(img)
+#    resultado = len(img)
     
 #     # Calculamos manualmente cuántos píxeles debería tener
-#     filas, columnas = img.data.shape[:2]
-#     esperado = filas * columnas
+#    filas, columnas = img.data.shape[:2]
+#    esperado = filas * columnas
     
 #     # Comparamos resultado con lo esperado
-#     if resultado == esperado:
-#         print(f"PASÓ: len() = {resultado}")
-#         print(f"  Imagen: {filas} x {columnas} píxeles")
-#     else:
-#         print(f"FALLÓ: esperado {esperado}, obtuvo {resultado}")
-# else:
-#     print(f"No se encontró la imagen en {RUTA_IMAGEN}")
+#    if resultado == esperado:
+#        print(f"PASÓ: len() = {resultado}")
+#        print(f"  Imagen: {filas} x {columnas} píxeles")
+#    else:
+#        print(f"FALLÓ: esperado {esperado}, obtuvo {resultado}")
+#else:
+#   print(f"No se encontró la imagen en {RUTA_IMAGEN}")
 
 # print()
 
@@ -307,25 +273,59 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 #PRUEBA DEL METODO aplicar_filtro()
 
-img = Imagen.leer_archivos(RUTA_IMAGEN)
+#img = Imagen.cargar(RUTA_IMAGEN)
 ## Detector de bordes inferiores (Bottom Sobel)
-bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
-blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
-suavizado = np.ones((3,3))
+#bottomSobel = np.array([[-1,-2,-1],[0,0,0],[1,2,1]])
+#blur = np.array([[0.0625, 0.125,0.0625],[0.125, 0.25, 0.125],[0.0625, 0.125,0.0625]])
+
 ##Outline
-ouutline = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+#ouutline = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
 ##Sharpen
-sharpen = np.array([[0,-1,0],[-1,5,-1],[0,-1,0]])
+#sharpen = np.array([[0,-1,0],[-1,5,-1],[0,-1,0]])
 
 ## Detector de bordes superiores (Top Sobel)
-topSobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
+#topSobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
 
 ## Detector de bordes izquierdos (Left Sobel)
-leftSobel = np.array([[1,0,-1],[2,0,-2],[1,0,-1]])
+#leftSobel = np.array([[1,0,-1],[2,0,-2],[1,0,-1]])
 ## Detector de bordes derechos (Right Sobel)
-rightSobel = np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
+#rightSobel = np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
 
-f = filtro.Filtro(tipo="rightSobel", kernel=rightSobel, tamaño="3x3")
+#f = Filtro(tipo="rightSobel", kernel=rightSobel, tamaño="3x3")
 #***** Aplicamos el filtro a la imagen *****
-img.aplicar_filtro(f)
-img.visualizar()
+##imagen_filtrada = f.aplicar(img)
+#imagen_filtrada.visualizar()
+#img.visualizar()
+
+#img.aplicar_filtro(f)
+#img.visualizar
+
+#print(f)
+
+img_termografica= imagen_termografica.cargar(RUTA_IMAGEN)
+img_termografica.visualizar()
+img_fiebre = img_termografica.detectar_puntos_calientes(20)
+img_fiebre.visualizar()
+
+img_segmentada = img_termografica.segmentar_por_rangos(70,100)
+img_segmentada.visualizar()
+
+img_puntos_calientes = img_termografica.detectar_puntos_calientes(temperatura=70)
+img_puntos_calientes.visualizar()
+
+#flir = FlirImageExtractor()
+#flir.process_image(flir_img_file=RUTA_IMAGEN)
+
+matriz_temperatura = flir.get_thermal_np()
+
+temp_max = np.amax(matriz_temperatura)
+temp_min = np.amin(matriz_temperatura)
+
+print(temp_max)
+print(temp_min)
+img_termografica = imagen_termografica(data=matriz_temperatura, info=None)
+img_segmentada = img_termografica.detectar_puntos_calientes(30)
+img_segmentada.visualizar()
+
+
+
