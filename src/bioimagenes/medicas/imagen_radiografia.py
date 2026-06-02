@@ -139,3 +139,54 @@ class ImagenRadiografia(Imagen):
         # Retornamos una nueva imagen radiográfica
         return ImagenRadiografia(resultado, tipo_estudio=self.info["tipo_estudio"], brillo=self.info["brillo"])
 
+    def ecualizar_intensidades(self):
+        """
+        Ecualiza las intensidades de la radiografía mediante
+        ecualización de histograma.
+        """
+
+        # Calculamos el histograma (256 niveles de gris)
+        histograma, _ = np.histogram(self.data.flatten(),bins=256,range=(0, 256)) #devuelve histograma (grafico de cuantas veces aparece una intensidad en la imagen)
+        
+        #np.histogram devuelve histograma, bordes. Como no nos interesan los bordes→ ponemos _ 
+        # porque no necesitamos ese valor
+
+        #flatten pone las columnas continuas para tener todos los valores en la misma "linea" o lista
+        #  para que sea mas facil contar apariciones de intensidades
+        
+        ecual = np.zeros_like(histograma) #creamos array del mismo tamaño que el histograma
+
+        acumulado = 0 # variable para sumar las frecuencias
+
+        for i in range(len(histograma)): #recorremos cada posición del histograma
+            acumulado += histograma[i] #sumamos la aparicion actual a la variable acumulada
+            
+            ecual[i] = acumulado #guardamos el valor de frecuencias en la misma posicion del array ecual
+
+        # Tomamos el valor mínimo del ecual.
+        # Corresponde a la menor cantidad acumulada de píxeles.
+        ecual_min = ecual.min()
+
+        # Tomamos el valor máximo del array ecual.
+        # Coincide con la cantidad total de píxeles de la imagen.
+        ecual_max = ecual.max()
+
+        # Aplicamos la fórmula de normalización para redistribuir los valores del array entre 0 y 255.
+        ecual_normalizada = ((ecual - ecual_min) * 255) / (ecual_max - ecual_min) # Restamos el mínimo para que la escala comience en 0.
+                                                                                  # Multiplicamos por 255 para llevar los valores al rango típico de una imagen de 8 bits.
+                                                                                  # Dividimos por (ecual_max - ecual_min) para ajustar proporcionalmente toda la escala.
+        
+        # Convertimos los resultados a enteros de 8 bits
+        ecual_normalizada = ecual_normalizada.astype(np.uint8)
+
+        resultado = ecual_normalizada[self.data] #usa cada valor de self.data como un indice para ecual_normalizada
+                                                 #el resultado es una matriz con los valores escualizados para cada uno de los indices
+
+        # Registramos la transformación realizada en el historial asociado a la imagen.
+        self.info.historial.modificar_historial("Intensidades ecualizadas")
+
+        # Retornamos una nueva instancia de ImagenRadiografia con la imagen ecualizada y conservando los metadatos originales.
+        return ImagenRadiografia(resultado,tipo_estudio=self.info["tipo_estudio"],brillo=self.info["brillo"])
+
+
+
