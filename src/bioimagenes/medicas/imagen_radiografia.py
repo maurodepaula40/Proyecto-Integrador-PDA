@@ -29,11 +29,11 @@ class ImagenRadiografia(Imagen):
         """Ver documentación de la clase"""
 
         # Llamamos al constructor de Imagen
-        super()._init_(data, info)
+        super().__init__(data, info)
 
         # Guardamos tipo_estudio y brillo en Info
-        self.info.datos["tipo_estudio"] = tipo_estudio
-        self.info.datos["brillo"] = int(brillo)
+        self._info._datos["tipo_estudio"] = tipo_estudio
+        self._info._datos["brillo"] = int(brillo)
 
         # Región de interés: ninguna por defecto
         self._region_interes = None
@@ -42,14 +42,43 @@ class ImagenRadiografia(Imagen):
     @property
     def tipo_estudio(self):
         """Retorna el tipo de estudio radiográfico almacenado en Info."""
-        return self.info["tipo_estudio"]
+        return self._info["tipo_estudio"]
 
     @property
     def brillo(self):
         """Retorna el valor de brillo almacenado en Info."""
-        return self.info["brillo"]
+        return self._info["brillo"]
     
     @property
     def region_interes(self):
         """Retorna la región de interés actual o None si no fue definida."""
         return self._region_interes
+
+    def mejorar_contraste(self, factor: float = 1.5):
+        """
+         Ajusta la diferencia entre intensidades para resaltar estructuras.
+        Devuelve una nueva instancia de ImagenRadiografia con el contraste mejorado.
+         Un factor mayor a 1 hace que las zonas claras sean más claras y las oscuras más oscuras.
+
+        Parámetros
+        ----------
+        factor : float
+            Multiplicador de contraste. > 1 aumenta el contraste, < 1 lo reduce.
+            Por defecto 1.5.
+        """
+
+        # Convierto la imagen a float para poder hacer operaciones matemáticas
+        datos = self.data.astype(np.float64)
+
+        #Tomamos el gris medio (128) como referencia.
+        #Primero restamos 128 para centrar los valores alrededor de 0, luego multiplicamos por el factor de contraste y finalmente
+        #volvemos a sumar 128 para regresar al rango normal.
+        resultado = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
+
+        # Registramos en el historial
+        self.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
+
+        #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
+        return ImagenRadiografia(resultado, self.tipo_estudio, self.brillo)
+    
+
