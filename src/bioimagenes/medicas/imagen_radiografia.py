@@ -43,3 +43,8 @@ class ImagenRadiografia(Imagen):
     def tipo_estudio(self):
         """Retorna el tipo de estudio radiográfico almacenado en Info."""
         return self.info["tipo_estudio"]
+
+    @property
+    def brillo(self):
+        """Retorna el valor de brillo almacenado en Info."""
+        return self.info["brillo"]
