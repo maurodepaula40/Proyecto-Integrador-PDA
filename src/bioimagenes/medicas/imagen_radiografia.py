@@ -48,3 +48,8 @@ class ImagenRadiografia(Imagen):
     def brillo(self):
         """Retorna el valor de brillo almacenado en Info."""
         return self.info["brillo"]
+    
+    @property
+    def region_interes(self):
+        """Retorna la región de interés actual o None si no fue definida."""
+        return self._region_interes
