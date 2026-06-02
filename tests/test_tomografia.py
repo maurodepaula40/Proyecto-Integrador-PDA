@@ -4,9 +4,9 @@ from bioimagenes.medicas.imagen_tomografia import ImagenTomografica
 
 RUTA_TOMOGRAFIA = "docs\AC421363f (1).nii"
 
-# ==========================================================
-# TESTS UNITARIOS (arrays creados manualmente)
-# ==========================================================
+# # ==========================================================
+# # TESTS UNITARIOS (arrays creados manualmente)
+# # ==========================================================
 
 # def test_creacion_imagen_tomografica():
 #     """
@@ -164,9 +164,9 @@ RUTA_TOMOGRAFIA = "docs\AC421363f (1).nii"
 #     assert resultado.shape == (2, 2, 3)
 
 
-# ==========================================================
-# TESTS CON TOMOGRAFÍA REAL
-# ==========================================================
+# # ==========================================================
+# # TESTS CON TOMOGRAFÍA REAL
+# # ==========================================================
 
 # def test_cargar_tomografia_real():
 #     """
@@ -246,9 +246,9 @@ RUTA_TOMOGRAFIA = "docs\AC421363f (1).nii"
 #     assert img.ventana_actual == (-500.0, 1300.0)
 
 
-# ==========================================================
-# EJECUCIÓN MANUAL
-# ==========================================================
+# # ==========================================================
+# # EJECUCIÓN MANUAL
+# # ==========================================================
 
 # if __name__ == "__main__":
 
@@ -302,11 +302,11 @@ tomo = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 # # print(tomo)
  
 # # 2. Ver un corte
-tomo.seleccionar_corte(200)
+tomo.seleccionar_corte(320)
 # tomo.mostrar_corte()
  
-# # 3. Coloreado por tejido
-# # tomo.visualizar_corte()
+# # # 3. Coloreado por tejido
+# tomo.visualizar_corte()
  
 # # 4. Cambiar preset y ver de nuevo
 tomo.aplicar_preset("hueso")
