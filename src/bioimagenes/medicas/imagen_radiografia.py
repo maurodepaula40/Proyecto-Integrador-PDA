@@ -25,7 +25,7 @@ class ImagenRadiografia(Imagen):
             None si no se definió ninguna región.
     """
 
-    def _init_(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
+    def __init__(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
         """Ver documentación de la clase"""
 
         # Llamamos al constructor de Imagen
@@ -54,6 +54,38 @@ class ImagenRadiografia(Imagen):
         """Retorna la región de interés actual o None si no fue definida."""
         return self._region_interes
 
+    #Sobreescribimos el método heredado de Imagen para poder ajustar la visualización segun el brillo definido
+    def visualizar(self):
+        """
+        Visualiza la radiografía aplicando el brillo definido en Info.
+
+        El brillo se suma a cada píxel antes de mostrar la imagen.
+        Valores positivos aclaran la imagen, negativos la oscurecen.
+        Hereda la estructura de visualizar() de Imagen y agrega el ajuste de brillo.
+        """
+        #Visualizacion de la imagen usando matplotlib (igual que lo hace Imagen)
+        fig, ax = plt.subplots(figsize=(8, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
+                                                    #figsize - define el tamaño de la ventana
+                                                    #fig - representa toda la ventanta
+                                                    #ax - representa el area donde va la imagen
+
+        # Aplicamos el brillo: sumamos el valor a cada píxel y acotamos a 0-255
+        # Convertimos a int32 para evitar errores al sumar el brillo sobre una imagen uint8.
+        # Esto es porque si por ejemplo un pixel vale 255 y le queremos sumar un brillo de 20 eso sería 275 y se iria del rango de uint8
+        img_con_brillo = np.clip(self.data.astype(np.int32) + self.brillo, 0, 255).astype(np.uint8) # Luego sumamos el valor de brillo a todos los píxeles.
+                                                                                                    # np.clip limita los valores para que permanezcan dentro del rango válido
+                                                                                                    # de una imagen de 8 bits (0 a 255).
+                                                                                                    # Finalmente volvemos a convertir la imagen a uint8 para visualizarla.
+
+        # Mostramos la imagen utilizando escala de grises.
+        ax.imshow(img_con_brillo, cmap="gray", interpolation="none") # Interpolation="none" evita que matplotlib suavice los píxeles.
+        ax.set_title(f"Radiografía — {self.tipo_estudio if self.tipo_estudio else 'sin tipo'}") # Mostramos en el título el tipo de estudio.
+                                                                                                # Si no se definió ninguno, se muestra "sin tipo".
+        ax.axis("off") # ocultamos los ejes
+        plt.tight_layout()
+        plt.show() # Mostramos
+
+
     def mejorar_contraste(self, factor: float = 1.5):
         """
          Ajusta la diferencia entre intensidades para resaltar estructuras.
@@ -80,5 +112,6 @@ class ImagenRadiografia(Imagen):
 
         #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
         return ImagenRadiografia(resultado, self.tipo_estudio, self.brillo)
+    
     
 
