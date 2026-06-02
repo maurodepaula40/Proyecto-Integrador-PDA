@@ -11,11 +11,8 @@ class ImagenRadiografia(Imagen):
     para su análisis y procesamiento médico: ajuste de contraste, inversión,
     ecualización, detección de bordes, selección de regiones de interés
     y visualización de clusters de intensidad.
-    """
 
-    def _init_(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
-        """
-        Atributos
+    Atributos
         ---------
         -tipo_estudio : str
             Tipo de estudio radiográfico (ej: "tórax", "abdomen", "columna").
@@ -26,7 +23,10 @@ class ImagenRadiografia(Imagen):
         -region_interes : tuple o None
             Coordenadas de la región de interés: (x_min, y_min, x_max, y_max).
             None si no se definió ninguna región.
-        """
+    """
+
+    def _init_(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
+        """Ver documentación de la clase"""
 
         # Llamamos al constructor de Imagen
         super()._init_(data, info)
@@ -34,6 +34,12 @@ class ImagenRadiografia(Imagen):
         # Guardamos tipo_estudio y brillo en Info
         self.info.datos["tipo_estudio"] = tipo_estudio
         self.info.datos["brillo"] = int(brillo)
-        
+
         # Región de interés: ninguna por defecto
         self._region_interes = None
+    
+    #Propiedades para acceder a atributos de Info
+    @property
+    def tipo_estudio(self):
+        """Retorna el tipo de estudio radiográfico almacenado en Info."""
+        return self.info["tipo_estudio"]
