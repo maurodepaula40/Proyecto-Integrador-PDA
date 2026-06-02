@@ -26,33 +26,38 @@ class ImagenRadiografia(Imagen):
     """
 
     def __init__(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
-        """Ver documentación de la clase"""
 
-        # Llamamos al constructor de Imagen
-        super().__init__(data, info)
+        # Si la imagen viene en float 
+        if np.issubdtype(data.dtype, np.floating):
+            if data.max() <= 1.0: # Si el valor máximo es menor o igual a 1, 
+                #asumimos que la imagen está normalizada entre 0 y 1.
+                data = (data * 255).astype(np.uint8) # Convertimos los valores al rango típico de imágenes
+                                                     # de 8 bits (0-255)
 
-        # Guardamos tipo_estudio y brillo en Info
-        self._info._datos["tipo_estudio"] = tipo_estudio
-        self._info._datos["brillo"] = int(brillo)
+        super().__init__(data, info) # Llamamos al constructor de la clase Imagen para inicializar data e info
 
-        # Región de interés: ninguna por defecto
-        self._region_interes = None
+        # Guardamos el tipo de estudio dentro de los metadatos
+        self.info.datos["tipo_estudio"] = tipo_estudio 
+        self.info.datos["brillo"] = int(brillo)
+        
+        self._region_interes = None # Inicialmente no hay ninguna región de interés definida.
+
     
     #Propiedades para acceder a atributos de Info
     @property
     def tipo_estudio(self):
         """Retorna el tipo de estudio radiográfico almacenado en Info."""
-        return self._info["tipo_estudio"]
+        return self.info["tipo_estudio"]
 
     @property
     def brillo(self):
         """Retorna el valor de brillo almacenado en Info."""
-        return self._info["brillo"]
+        return self.info["brillo"]
     
     @property
     def region_interes(self):
         """Retorna la región de interés actual o None si no fue definida."""
-        return self._region_interes
+        return self.region_interes
 
     #Sobreescribimos el método heredado de Imagen para poder ajustar la visualización segun el brillo definido
     def visualizar(self):
@@ -108,10 +113,29 @@ class ImagenRadiografia(Imagen):
         resultado = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
 
         # Registramos en el historial
-        self.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
+        self.info.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
 
         #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
         return ImagenRadiografia(resultado, self.tipo_estudio, self.brillo)
     
-    
+    def invertir_intensidades(self):
+        """
+        Invierte las intensidades de la radiografía.
+
+        Cada píxel se transforma según:
+            nuevo_valor = 255 - valor_original
+
+        Esto produce un negativo de la imagen:
+        - las zonas claras pasan a oscuras
+        - las zonas oscuras pasan a claras
+        """
+
+        # Invertimos los niveles de gris
+        resultado = 255 - self.data
+
+        # Registramos la transformación en el historial
+        self.info.historial.modificar_historial("Intensidades invertidas")
+
+        # Retornamos una nueva imagen radiográfica
+        return ImagenRadiografia(resultado, tipo_estudio=self.info["tipo_estudio"], brillo=self.info["brillo"])
 
