@@ -34,6 +34,9 @@ class ImagenRadiografia(Imagen):
                 data = (data * 255).astype(np.uint8) # Convertimos los valores al rango típico de imágenes
                                                      # de 8 bits (0-255)
 
+        if data.ndim != 2: #Imagen si acepta imagenes rgb por eso aca hay que reestrigir eso
+            raise ValueError("Una radiografía debe ser una imagen 2D en escala de grises")
+        
         super().__init__(data, info) # Llamamos al constructor de la clase Imagen para inicializar data e info
 
         # Guardamos el tipo de estudio dentro de los metadatos
@@ -57,7 +60,7 @@ class ImagenRadiografia(Imagen):
     @property
     def region_interes(self):
         """Retorna la región de interés actual o None si no fue definida."""
-        return self.region_interes
+        return self._region_interes
 
     #Sobreescribimos el método heredado de Imagen para poder ajustar la visualización segun el brillo definido
     def visualizar(self):
