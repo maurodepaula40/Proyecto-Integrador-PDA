@@ -7,9 +7,14 @@ from bioimagenes.core.historial import Historial
 from bioimagenes.filtros.filtro import Filtro
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
+#import pyvista as pv
+#import cv2
 from bioimagenes.medicas.imagen_termografica import imagen_termografica
-from flirimageextractor import FlirImageExtractor
+import meshlib.mrmeshpy as mm        
+import meshlib.mrmeshnumpy as mrmesh_np
+from meshlib import mrviewerpy as mv
+import pydicom
+
 
 #Prueba con imagen en escala de grises
 
@@ -45,7 +50,7 @@ from flirimageextractor import FlirImageExtractor
 
 
 # Ruta de la imagen de prueba
-RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
+RUTA_IMAGEN = "tests/imagenes_test/AC421363f.nii"
 
 # # TEST 1: Cargar imagen real y verificar len()
 #print("TEST 1: Verificar len() con imagen real")
@@ -302,30 +307,5 @@ RUTA_IMAGEN = "tests/imagenes_test/termografias/N11103.jpg"
 
 #print(f)
 
-img_termografica= imagen_termografica.cargar(RUTA_IMAGEN)
-img_termografica.visualizar()
-img_fiebre = img_termografica.detectar_puntos_calientes(20)
-img_fiebre.visualizar()
-
-img_segmentada = img_termografica.segmentar_por_rangos(70,100)
-img_segmentada.visualizar()
-
-img_puntos_calientes = img_termografica.detectar_puntos_calientes(temperatura=70)
-img_puntos_calientes.visualizar()
-
-#flir = FlirImageExtractor()
-#flir.process_image(flir_img_file=RUTA_IMAGEN)
-
-matriz_temperatura = flir.get_thermal_np()
-
-temp_max = np.amax(matriz_temperatura)
-temp_min = np.amin(matriz_temperatura)
-
-print(temp_max)
-print(temp_min)
-img_termografica = imagen_termografica(data=matriz_temperatura, info=None)
-img_segmentada = img_termografica.detectar_puntos_calientes(30)
-img_segmentada.visualizar()
-
-
-
+img_tomografica= Imagen.cargar(RUTA_IMAGEN)
+print(type(img_tomografica.data))

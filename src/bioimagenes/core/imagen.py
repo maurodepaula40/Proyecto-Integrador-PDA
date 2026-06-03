@@ -5,7 +5,7 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros.filtro import Filtro
+
 
 class Imagen:
     """
@@ -280,40 +280,3 @@ class Imagen:
             print(f"El tipo de lo que se recibio es: {type(filtro)}")
             print(f"El error real es: {e}")
             return self
-        
-    def normalizar(self, modo: str):
-        """
-        Normaliza los valores de píxeles de la imagen al rango indicado.
-        Modifica self.data directamente y registra el cambio en el historial.
-
-        Parámetros:
-            -modo : str
-                "float64"   → convierte a float64 con valores entre 0.0 y 1.0.
-                            Útil para análisis matemático y aplicación de filtros.
-                "8bits"     → convierte a uint8 con valores entre 0 y 255.
-                            Útil para visualización estándar.
-        Error:
-            ValueError: Si se ingresa un modo que no coincida con las opciones válidas. 
-        """
-        
-        if modo not in ("float64", "8bits"):
-            raise ValueError(f"modo debe ser float64 o 8bits, no '{modo}'")
- 
-        datos = self.data.astype(np.float64)
-        minimo = datos.min()
-        maximo = datos.max()
- 
-        # Evitamos división por cero si la imagen es completamente uniforme
-        if maximo == minimo:
-            datos_norm = np.zeros_like(datos)
-        else:
-            datos_norm = (datos - minimo) / (maximo - minimo)  # siempre queda en 0-1
- 
-        if modo == "0-1":
-            self.data = datos_norm                              # float64, rango 0.0–1.0
-        else:
-            self.data = (datos_norm * 255).astype(np.uint8)    # uint8, rango 0–255
- 
-        # Registramos en el historial si existe
-        if hasattr(self, "info") and self.info is not None:
-            self.info.historial.modificar_historial(f"Normalización aplicada: modo {modo}")
