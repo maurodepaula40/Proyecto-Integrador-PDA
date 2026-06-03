@@ -235,17 +235,16 @@ class ImagenRadiografia(Imagen):
         # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
         #info_nueva["modificado"] = True 
 
-        # Instanciar el nuevo objeto radiográfico pasando la submatriz y los metadatos
-        # Reemplazar 'imagen_radiografia' por el nombre exacto de tu clase si difiere
+        # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
         img_recortada = ImagenRadiografia(matriz_recortada, info=None)
 
-        # Asignar un título identificativo al nuevo objeto detallando el área del recorte
+        # Asignamos un nuevo titulo al nuevo objeto detallando el área del recorte
         img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
 
-        # Registrar la acción de recorte en el historial de auditoría de la imagen original
-        self.historial.modificar_historial(f"Se recortó ROI regional de {x_max - x_min}x{y_max - y_min} píxeles.")
+        # Registramos la acción de recorte en el historial de la imagen original
+        self.historial.modificar_historial(f"Se recortó la imagen.")
 
-        # Retornar la nueva imagen médica segmentada espacialmente
+        # Retornamos la nueva instancia de imagen radiografica
         return img_recortada
 
 
