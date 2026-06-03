@@ -1,4 +1,4 @@
-from bioimagenes.core.imagen import Imagen
+#from bioimagenes.core.imagen import Imagen
 import numpy as np
 from scipy.signal import convolve2d
 

@@ -195,4 +195,62 @@ class ImagenRadiografia(Imagen):
         return ImagenRadiografia(resultado,tipo_estudio=self.info["tipo_estudio"],brillo=self.info["brillo"])
 
 
+    def detectar_bordes(self):
+        pass
 
+    def seleccionar_region_interes(self, y_min:int, y_max:int, x_min:int, x_max:int):
+        """
+        Recortar una región de interés específica dentro de la imagen radiográfica.
+
+        Parámetros:
+            -y_min (int): Coordenada  inicial (columna izquierda).
+            -y_max (int): Coordenada vertical inicial (fila superior).
+            -x_min (int): Coordenada horizontal final (columna derecha).
+            -x_max (int): Coordenada vertical final (fila inferior).
+
+        Retoran:
+            imagen_radiografia: Nueva instancia que almacena la submatriz recortada.
+
+        Raises:
+            ValueError: Si las coordenadas son negativas, inconsistentes (mínimo mayor al máximo) 
+                o si desbordan las dimensiones de la imagen original.
+        """
+        # Obtenemos las dimensiones reales (alto y ancho) de la matriz de la radiografía
+        alto_real, ancho_real = self.data.shape[:2]
+
+        # Validamos que los límites mínimos no superen o igualen a los límites máximos
+        if x_min >= x_max or y_min >= y_max:
+            raise ValueError(f"Error de rango: Los valores mínimos [{x_min}, {y_min}] "
+                            f"deben ser menores que los máximos [{x_max}, {y_max}].")
+        
+        # Validamos que ninguna coordenada este fuera de rango del tamaño de la matriz
+        if x_max > ancho_real or y_max > alto_real:
+            raise ValueError(f"Error de rango: Las coordenadas exceden los límites de la radiografía "
+                            f"(Tamaño actual: {ancho_real}x{alto_real}).")
+        
+        # Extraer la submatriz utilizando slicing
+        matriz_recortada = self.data[y_min:y_max, x_min:x_max]
+
+        #info_nueva = self.info
+        # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
+        #info_nueva["modificado"] = True 
+
+        # Instanciar el nuevo objeto radiográfico pasando la submatriz y los metadatos
+        # Reemplazar 'imagen_radiografia' por el nombre exacto de tu clase si difiere
+        img_recortada = ImagenRadiografia(matriz_recortada, info=None)
+
+        # Asignar un título identificativo al nuevo objeto detallando el área del recorte
+        img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
+
+        # Registrar la acción de recorte en el historial de auditoría de la imagen original
+        self.historial.modificar_historial(f"Se recortó ROI regional de {x_max - x_min}x{y_max - y_min} píxeles.")
+
+        # Retornar la nueva imagen médica segmentada espacialmente
+        return img_recortada
+
+
+
+        pass
+
+    def visualizar_cluster(self):
+        pass

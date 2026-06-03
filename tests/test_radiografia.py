@@ -1,6 +1,8 @@
+import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
+from bioimagenes.core.imagen import Imagen
 
 
 # # #==========================================================
@@ -273,15 +275,9 @@ from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
 #     print(f"\nResultado: {aprobados}/{len(tests)} tests aprobados")
 
 ## Prueba con imagenes reales:
-data = plt.imread("docs/216840111366964013451228379692012257110540618_02-006-005.png")
+radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964014008416513202014153161516671_01-196-149.png")
+print(radiografia.data.dtype)
+recorte = radiografia.seleccionar_region_interes(30,100,50,300)
+radiografia.visualizar()
+recorte.visualizar()
 
-img = ImagenRadiografia(data, tipo_estudio="Torax", brillo=0)
-# resultado = img.mejorar_contraste(2)
-# resultado.visualizar()
-
-
-# invertida  = img.invertir_intensidades()
-# invertida.visualizar()
-
-# ecualizada = img.ecualizar_intensidades()
-# ecualizada.visualizar()
