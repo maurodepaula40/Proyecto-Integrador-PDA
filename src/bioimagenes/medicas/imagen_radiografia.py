@@ -27,9 +27,13 @@ class ImagenRadiografia(Imagen):
 
     def __init__(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
 
-        # Si la imagen viene en float 
-        if np.issubdtype(data.dtype, np.floating):
-            if data.max() <= 1.0: # Si el valor máximo es menor o igual a 1, 
+        # Validamos que sea un array 2D antes de llamar a Imagen
+        if isinstance(data, np.ndarray) and data.ndim != 2:
+            raise ValueError("ImagenRadiografia requiere un array 2D (escala de grises).")
+
+        # Si la imagen viene en float, convertimos ANTES de llamar al padre
+        if isinstance(data, np.ndarray) and np.issubdtype(data.dtype, np.floating):
+            if data.max() <= 1.0: # Si el valor máximo es menor o igual a 1,
                 #asumimos que la imagen está normalizada entre 0 y 1.
                 data = (data * 255).astype(np.uint8) # Convertimos los valores al rango típico de imágenes
                                                      # de 8 bits (0-255)
@@ -38,6 +42,8 @@ class ImagenRadiografia(Imagen):
             raise ValueError("Una radiografía debe ser una imagen 2D en escala de grises")
         
         super().__init__(data, info) # Llamamos al constructor de la clase Imagen para inicializar data e info
+
+
 
         # Guardamos el tipo de estudio dentro de los metadatos
         self.info.datos["tipo_estudio"] = tipo_estudio 
