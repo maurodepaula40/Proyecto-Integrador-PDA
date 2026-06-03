@@ -38,9 +38,6 @@ class ImagenRadiografia(Imagen):
                 data = (data * 255).astype(np.uint8) # Convertimos los valores al rango típico de imágenes
                                                      # de 8 bits (0-255)
 
-        if data.ndim != 2: #Imagen si acepta imagenes rgb por eso aca hay que reestrigir eso
-            raise ValueError("Una radiografía debe ser una imagen 2D en escala de grises")
-        
         super().__init__(data, info) # Llamamos al constructor de la clase Imagen para inicializar data e info
 
 
@@ -56,17 +53,17 @@ class ImagenRadiografia(Imagen):
     @property
     def tipo_estudio(self):
         """Retorna el tipo de estudio radiográfico almacenado en Info."""
-        return self.info.datos["tipo_estudio"]
+        return self.info["tipo_estudio"]
 
     @property
     def brillo(self):
         """Retorna el valor de brillo almacenado en Info."""
-        return self.info.datos["brillo"]
+        return self.info["brillo"]
     
     @property
     def region_interes(self):
         """Retorna la región de interés actual o None si no fue definida."""
-        return self._region_interes
+        return self.region_interes
 
     #Sobreescribimos el método heredado de Imagen para poder ajustar la visualización segun el brillo definido
     def visualizar(self):
@@ -150,8 +147,8 @@ class ImagenRadiografia(Imagen):
 
     def ecualizar_intensidades(self):
         """
-        Ecualiza las intensidades de la radiografía mediante
-        ecualización de histograma.
+        Redistribuye los píxeles para que usen todo el rango 0-255 de forma más uniforme, logrando más contraste.
+        Ecualiza las intensidades de la radiografía mediante ecualización de histograma.
         """
 
         # Calculamos el histograma (256 niveles de gris)

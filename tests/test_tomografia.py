@@ -298,19 +298,19 @@ RUTA_TOMOGRAFIA = "docs\AC421363f (1).nii"
 #Pruebas con imagenes reales:
 
 # 1. Cargar
-tomo = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
+#tomo = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 # # print(tomo)
  
 # # 2. Ver un corte
-tomo.seleccionar_corte(320)
+#tomo.seleccionar_corte(320)
 # tomo.mostrar_corte()
  
 # # # 3. Coloreado por tejido
 # tomo.visualizar_corte()
  
 # # 4. Cambiar preset y ver de nuevo
-tomo.aplicar_preset("hueso")
-tomo.mostrar_corte()
+#tomo.aplicar_preset("hueso")
+#tomo.mostrar_corte()
 
 # # 5. Ver el historial de cambios
 # tomo.mostrar_historial()
