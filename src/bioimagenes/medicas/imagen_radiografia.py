@@ -27,6 +27,8 @@ class ImagenRadiografia(Imagen):
 
     def __init__(self, data: np.ndarray, tipo_estudio: str = "", brillo: int = 0, info: Info = None):
 
+        super().__init__(data, info) # Llamamos al constructor de la clase Imagen para inicializar data e info
+
         # Si la imagen viene en float 
         if np.issubdtype(data.dtype, np.floating):
             if data.max() <= 1.0: # Si el valor máximo es menor o igual a 1, 
@@ -34,7 +36,6 @@ class ImagenRadiografia(Imagen):
                 data = (data * 255).astype(np.uint8) # Convertimos los valores al rango típico de imágenes
                                                      # de 8 bits (0-255)
 
-        super().__init__(data, info) # Llamamos al constructor de la clase Imagen para inicializar data e info
 
         # Guardamos el tipo de estudio dentro de los metadatos
         self.info.datos["tipo_estudio"] = tipo_estudio 
