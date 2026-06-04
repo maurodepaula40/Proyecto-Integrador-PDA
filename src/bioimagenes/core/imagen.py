@@ -320,3 +320,34 @@ class Imagen:
         # Capturamos cualquier error surgido durante el procesamiento interno del filtro.
         except Exception as e:
             raise RuntimeError(f"Error al procesar el filtro en la imagen: {e}")
+        
+    
+    @staticmethod
+    def normalizar(matriz: np.ndarray) -> np.ndarray:
+        """
+        Método de utilidad que realiza un escalado Min-Max dinámico para 
+        distribuir los valores de cualquier matriz en el rango estándar 0-255 
+        y la convierte a np.uint8 sin perder información por truncamiento.
+        """
+        # Forzamos a float32 para evitar desbordamientos en las operaciones
+        matriz_float = matriz.astype(np.float32)
+        
+        # Obtenemos los valores extremos reales de la matriz actual
+        valor_min = np.min(matriz_float)
+        valor_max = np.max(matriz_float)
+        
+        # Calculamos el rango (el ancho de la distribución de los datos)
+        rango = valor_max - valor_min
+        
+        # Hacemos el cálculo matemático de la normalización
+        if rango != 0:
+            # Desplazamos al origen (restar el mínimo) y escalamos proporcionalmente a 255
+            matriz_normalizada = ((matriz_float - valor_min) / rango) * 255.0
+        else:
+            # Si el rango es 0 significa que toda la imagen es de un solo color plano
+            matriz_normalizada = matriz_float
+        
+        # Usamos .clip por seguridad y conversión a uint8
+        matriz_normalizada = np.clip(matriz_normalizada, 0, 255).astype(np.uint8)
+            
+        return matriz_normalizada
