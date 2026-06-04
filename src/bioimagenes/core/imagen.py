@@ -325,29 +325,38 @@ class Imagen:
     @staticmethod
     def normalizar(matriz: np.ndarray) -> np.ndarray:
         """
-        Método que realiza un escalado Min-Max para 
-        distribuir los valores de cualquier matriz en el rango estándar 0-255 
-        y la convierte a np.uint8 sin perder información.
+        Método que normaliza una matriz al rango estándar 0-255 y la convierte a np.uint8.
+        Si la matriz original es un tipo entero superior a uint8 (ej: uint16), normaliza 
+        usando el máximo teórico del formato (np.iinfo). De lo contrario, aplica Min-Max.
         """
+        # Guardamos el tipo de dato original antes de convertir a float
+        tipo_original = matriz.dtype
+        
         # Forzamos a float32 para evitar desbordamientos en las operaciones
         matriz_float = matriz.astype(np.float32)
         
-        # Obtenemos los valores extremos reales de la matriz actual
-        valor_min = np.min(matriz_float)
-        valor_max = np.max(matriz_float)
-        
-        # Calculamos el rango (el ancho de la distribución de los datos)
-        rango = valor_max - valor_min
-        
-        # Hacemos el cálculo matemático de la normalización
-        if rango != 0:
-            # Desplazamos al origen (restar el mínimo) y escalamos proporcionalmente a 255
-            matriz_normalizada = ((matriz_float - valor_min) / rango) * 255.0
-        else:
-            # Si el rango es 0 significa que toda la imagen es de un solo color plano
-            matriz_normalizada = matriz_float
-        
-        # Usamos .clip por seguridad y conversión a uint8
-        matriz_normalizada = np.clip(matriz_normalizada, 0, 255).astype(np.uint8)
+        # Si es un tipo entero y es superior a uint8 (ej: int16, uint16, int32)
+        if np.issubdtype(tipo_original, np.integer) and tipo_original != np.uint8:
             
+            # Obtenemos las propiedades del formato original (ej: para uint16 el max es 65535)
+            valor_maximo_original = np.iinfo(matriz_float.data.dtype).max
+
+        
+            # Escalamos a 0 y 255
+            matriz_normalizada = (matriz_float/float(valor_maximo_original)) * 255.0
+            
+        else:
+            # por defecto escalamos Min-Max para float32, uint8, etc.
+            valor_min = np.min(matriz_float)
+            valor_max = np.max(matriz_float)
+            rango = valor_max - valor_min
+            
+            if rango != 0:
+                matriz_normalizada = ((matriz_float - valor_min) / rango) * 255.0
+            else:
+                matriz_normalizada = matriz_float
+        
+        # Usamos .clip por seguridad y convertimos a uint8
+        matriz_normalizada = np.clip(matriz_normalizada, 0, 255).astype(np.uint8)
+
         return matriz_normalizada
