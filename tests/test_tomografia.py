@@ -321,4 +321,4 @@ img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 #tomo = ImagenTomografica(RUTA_TOMOGRAFIA)
 
 
-img.reconstruir_3d(200,300)
+img.reconstruir_3d(0,300,1)
