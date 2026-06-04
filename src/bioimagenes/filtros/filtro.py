@@ -99,7 +99,6 @@ class Filtro:
         # Retornamos la matriz de numpy filtrada
         matriz_filtrada = self.convolucion(imagen)
         return matriz_filtrada
-    
 
     def obtener_kernel(self):
         """
@@ -145,7 +144,7 @@ class Filtro:
             )
         }
 
-        # Obtenemos el kernel usando el método .get() del diccionario
+        # Obtenemos el kernel del diccionario
         kernel_encontrado = catalogo_kernels.get(self.tipo)
 
         # Si el resultado es None, significa que el usuario escribió un filtro que no existe

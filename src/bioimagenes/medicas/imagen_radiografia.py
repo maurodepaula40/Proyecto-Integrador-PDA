@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.info import Info
+from bioimagenes.filtros.filtro import Filtro
 
 class ImagenRadiografia(Imagen):
     """
@@ -196,6 +197,28 @@ class ImagenRadiografia(Imagen):
 
 
     def detectar_bordes(self):
+        """
+        Detecta los bordes anatómicos de la radiografía.
+        """
+        filtro_h = Filtro(tipo="sobelhorizontal")
+        filtro_v = Filtro(tipo="sobelvertical")
+
+        try:
+            # 2. Obtenemos los gradientes individuales
+            g_x = filtro_h.aplicar(self)
+            g_y = filtro_v.aplicar(self)
+
+            # Combinamos ambos gradientes
+            matriz_combinada = g_x.astype(np.float32) + g_y.astype(np.float32)
+
+            # Guardamos el resultado final en 'self.data'
+            self.data = np.clip(matriz_combinada, 0, 255).astype(np.uint8)
+            
+            # Registramos el cambio en el historial.
+            self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel)")
+
+        except Exception as e:
+            raise RuntimeError(f"Error al ejecutar la detección de bordes por Sobel: {e}") 
         pass
 
     def seleccionar_region_interes(self, y_min:int, y_max:int, x_min:int, x_max:int):
@@ -248,8 +271,4 @@ class ImagenRadiografia(Imagen):
         return img_recortada
 
     def visualizar_cluster(self):
-        pass
-
-
-    def detectar_bordes(self):
         pass
