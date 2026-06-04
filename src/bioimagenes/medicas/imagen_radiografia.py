@@ -67,16 +67,16 @@ class ImagenRadiografia(Imagen):
         return self.region_interes
 
     #Sobreescribimos el método heredado de Imagen para poder ajustar la visualización segun el brillo definido
-    def visualizar(self):
-        """
-        Visualiza la radiografía aplicando el brillo definido en Info.
+    #def visualizar(self):
+    #    """
+    #    Visualiza la radiografía aplicando el brillo definido en Info.
 
-        El brillo se suma a cada píxel antes de mostrar la imagen.
-        Valores positivos aclaran la imagen, negativos la oscurecen.
-        Hereda la estructura de visualizar() de Imagen y agrega el ajuste de brillo.
-        """
-        #Visualizacion de la imagen usando matplotlib (igual que lo hace Imagen)
-        fig, ax = plt.subplots(figsize=(8, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
+#        El brillo se suma a cada píxel antes de mostrar la imagen.
+#        Valores positivos aclaran la imagen, negativos la oscurecen.
+#        Hereda la estructura de visualizar() de Imagen y agrega el ajuste de brillo.
+#        """
+#        #Visualizacion de la imagen usando matplotlib (igual que lo hace Imagen)
+#        fig, ax = plt.subplots(figsize=(8, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
                                                     #figsize - define el tamaño de la ventana
                                                     #fig - representa toda la ventanta
                                                     #ax - representa el area donde va la imagen
@@ -84,18 +84,18 @@ class ImagenRadiografia(Imagen):
         # Aplicamos el brillo: sumamos el valor a cada píxel y acotamos a 0-255
         # Convertimos a int32 para evitar errores al sumar el brillo sobre una imagen uint8.
         # Esto es porque si por ejemplo un pixel vale 255 y le queremos sumar un brillo de 20 eso sería 275 y se iria del rango de uint8
-        img_con_brillo = np.clip(self.data.astype(np.int32) + self.brillo, 0, 255).astype(np.uint8) # Luego sumamos el valor de brillo a todos los píxeles.
+#        img_con_brillo = np.clip(self.data.astype(np.int32) + self.brillo, 0, 255).astype(np.uint8) # Luego sumamos el valor de brillo a todos los píxeles.
                                                                                                     # np.clip limita los valores para que permanezcan dentro del rango válido
                                                                                                     # de una imagen de 8 bits (0 a 255).
                                                                                                     # Finalmente volvemos a convertir la imagen a uint8 para visualizarla.
 
         # Mostramos la imagen utilizando escala de grises.
-        ax.imshow(img_con_brillo, cmap="gray", interpolation="none") # Interpolation="none" evita que matplotlib suavice los píxeles.
-        ax.set_title(f"Radiografía — {self.tipo_estudio if self.tipo_estudio else 'sin tipo'}") # Mostramos en el título el tipo de estudio.
+#        ax.imshow(img_con_brillo, cmap="gray", interpolation="none") # Interpolation="none" evita que matplotlib suavice los píxeles.
+#        ax.set_title(f"Radiografía — {self.tipo_estudio if self.tipo_estudio else 'sin tipo'}") # Mostramos en el título el tipo de estudio.
                                                                                                 # Si no se definió ninguno, se muestra "sin tipo".
-        ax.axis("off") # ocultamos los ejes
-        plt.tight_layout()
-        plt.show() # Mostramos
+#       ax.axis("off") # ocultamos los ejes
+#        plt.tight_layout()
+#        plt.show() # Mostramos
 
 
     def mejorar_contraste(self, factor: float = 1.5):
@@ -200,8 +200,8 @@ class ImagenRadiografia(Imagen):
         """
         Detecta los bordes anatómicos de la radiografía.
         """
-        filtro_h = Filtro(tipo="sobelhorizontal")
-        filtro_v = Filtro(tipo="sobelvertical")
+        filtro_h = Filtro(nombre="sobelhorizontal")
+        filtro_v = Filtro(nombre="sobelvertical")
 
         try:
             # 2. Obtenemos los gradientes individuales
@@ -215,7 +215,7 @@ class ImagenRadiografia(Imagen):
             self.data = np.clip(matriz_combinada, 0, 255).astype(np.uint8)
             
             # Registramos el cambio en el historial.
-            self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel)")
+            self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")
 
         except Exception as e:
             raise RuntimeError(f"Error al ejecutar la detección de bordes por Sobel: {e}") 

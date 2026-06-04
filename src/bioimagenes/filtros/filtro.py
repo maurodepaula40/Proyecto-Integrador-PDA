@@ -8,9 +8,8 @@ class Filtro:
     Clase que permite realizar operaciones sobre la imagen
 
     Paramentros:
-        -tipo (str): indica el tipo de filtro (ej: suavizado, detección de bordes).
-        -kernel (np.ndarray): matriz que define el filtro a aplicar en la imagen.
-        -tamaño (str): dimensión del kernel (ej: 3x3, 5x5).
+        -tipo (str): indica el tipo de filtro (ej: suavizado, sobel, laplaciano, etc).
+        -tamaño (int): tamaño del kernel. Por defecto es 3
     
     """
 

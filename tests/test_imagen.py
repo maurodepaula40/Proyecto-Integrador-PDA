@@ -307,5 +307,14 @@ RUTA_IMAGEN = "tests/imagenes_test/AC421363f.nii"
 
 #print(f)
 
-img_tomografica= Imagen.cargar(RUTA_IMAGEN)
-print(type(img_tomografica.data))
+#img_tomografica= Imagen.cargar(RUTA_IMAGEN)
+#print(type(img_tomografica.data))
+
+datovich = np.random.randint(0, 255, (100, 100)) 
+img = Imagen(data=datovich, info=None)
+img.visualizar()
+
+filtro_h = Filtro("sobelhorizontal")
+g_y = filtro_h.aplicar(img)
+img.visualizar()
+print(g_y)

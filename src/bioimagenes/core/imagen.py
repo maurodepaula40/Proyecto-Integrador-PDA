@@ -62,16 +62,19 @@ class Imagen:
         else:
             self.__info = Info()
         
+        # Instanciamos el historial de manera encapsulada privada
+        self.__historial = Historial()
+        
         
         # Asignamos a la variable historial el objeto Historial()
-        @property
-        def historial(self):
-            """
-            Proporcionar acceso controlado al objeto de historial de la imagen.
-            Retorna:
-                Historial: Instancia de la clase Historial que gestiona la bitácora de cambios.
-            """
-            return self.__historial
+    @property
+    def historial(self):
+        """
+        Proporcionar acceso controlado al objeto de historial de la imagen.
+        Retorna:
+            Historial: Instancia de la clase Historial que gestiona la bitácora de cambios.
+        """
+        return self.__historial
     
     @property
     def data(self):
