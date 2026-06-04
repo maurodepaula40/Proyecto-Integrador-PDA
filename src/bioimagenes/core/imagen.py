@@ -325,9 +325,9 @@ class Imagen:
     @staticmethod
     def normalizar(matriz: np.ndarray) -> np.ndarray:
         """
-        Método de utilidad que realiza un escalado Min-Max dinámico para 
+        Método que realiza un escalado Min-Max para 
         distribuir los valores de cualquier matriz en el rango estándar 0-255 
-        y la convierte a np.uint8 sin perder información por truncamiento.
+        y la convierte a np.uint8 sin perder información.
         """
         # Forzamos a float32 para evitar desbordamientos en las operaciones
         matriz_float = matriz.astype(np.float32)
