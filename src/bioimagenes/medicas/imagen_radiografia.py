@@ -200,13 +200,13 @@ class ImagenRadiografia(Imagen):
 
     def seleccionar_region_interes(self, y_min:int, y_max:int, x_min:int, x_max:int):
         """
-        Recortar una región de interés específica dentro de la imagen radiográfica.
+        Recorta una región de interés específica dentro de la imagen radiográfica.
 
         Parámetros:
-            -y_min (int): Coordenada  inicial (columna izquierda).
-            -y_max (int): Coordenada vertical inicial (fila superior).
-            -x_min (int): Coordenada horizontal final (columna derecha).
-            -x_max (int): Coordenada vertical final (fila inferior).
+            -y_min (int): Coordenada vertical izquiera (columna izquierda).
+            -y_max (int): Coordenada vertical derecha (columna derecha).
+            -x_min (int): Coordenada horizontal superior (fila superior).
+            -x_max (int): Coordenada horizontal final (fila inferior).
 
         Retoran:
             imagen_radiografia: Nueva instancia que almacena la submatriz recortada.
@@ -231,12 +231,12 @@ class ImagenRadiografia(Imagen):
         # Extraer la submatriz utilizando slicing
         matriz_recortada = self.data[y_min:y_max, x_min:x_max]
 
-        #info_nueva = self.info
+        info_nueva = self._info
         # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
         #info_nueva["modificado"] = True 
 
         # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
-        img_recortada = ImagenRadiografia(matriz_recortada, info=None)
+        img_recortada = ImagenRadiografia(matriz_recortada, info_nueva)
 
         # Asignamos un nuevo titulo al nuevo objeto detallando el área del recorte
         img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
@@ -247,9 +247,9 @@ class ImagenRadiografia(Imagen):
         # Retornamos la nueva instancia de imagen radiografica
         return img_recortada
 
-
-
+    def visualizar_cluster(self):
         pass
 
-    def visualizar_cluster(self):
+
+    def detectar_bordes(self):
         pass

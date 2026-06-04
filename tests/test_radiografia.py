@@ -275,9 +275,10 @@ from bioimagenes.core.imagen import Imagen
 #     print(f"\nResultado: {aprobados}/{len(tests)} tests aprobados")
 
 ## Prueba con imagenes reales:
-radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964014008416513202014153161516671_01-196-149.png")
+radiografia = Imagen.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
 print(radiografia.data.dtype)
-recorte = radiografia.seleccionar_region_interes(30,100,50,300)
+print(radiografia.data.shape)
+#recorte = radiografia.invertir_intensidades()
 radiografia.visualizar()
-recorte.visualizar()
+#recorte.visualizar()
 

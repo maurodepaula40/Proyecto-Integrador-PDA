@@ -31,36 +31,47 @@ class Imagen:
             - TypeError si data no es un np.ndarray
         """
        
-        #Comprobar de que data sea valido
+        #Comprobamos de que data sea valido
         if data is None:
             raise ValueError ("La imagen no tiene datos (data es None)")
     
         if not isinstance(data, np.ndarray):
             raise TypeError (f"data debe ser np.ndarray, no {type(data)}")
         
-        #verificar la dimension de la imagen
+        # Verificamos la dimension de la imagen
         if data.ndim not in (2, 3):
             raise ValueError(f"data debe tener 2 o 3 dimensiones, no {data.ndim}")
         
         #verificar que si la imagen es RGB tenga los 3 canales
         if data.ndim == 3:
-            if data.shape[2] in [3]:
-
+            if data.shape[2] == 3:
                 # Si es RGB común, nos quedamos con un canal
-                data_procesada = data[:, :, 0]
+                array = data[:, :, 0]
             else:
-                # ¡Es tu tomografía NIfTI! Mantenemos las 3 dimensiones intactas 
-                # o seleccionamos el corte central temporalmente:
-                data_procesada = data
+                #Si tiene mas de 3 canales es una imagen tomografica, el ultimo valor corresponde a los cortes, deja
+                array = data
         else:
-            data_procesada = data
+            array = data
         
-        self.original = data_procesada.copy()
-        self.__data = self.original.copy()
+        self.original = array.copy()
+        self.__data = self.original
 
-        self._info = info if info is not None else Info()
+        # Verificamos el parametro info
+        if info is not None:
+            self.__info = info
+        else:
+            self.__info = Info()
         
-        self.historial = Historial()
+        
+        # Asignamos a la variable historial el objeto Historial()
+        @property
+        def historial(self):
+            """
+            Proporcionar acceso controlado al objeto de historial de la imagen.
+            Retorna:
+                Historial: Instancia de la clase Historial que gestiona la bitácora de cambios.
+            """
+            return self.__historial
     
     @property
     def data(self):
@@ -71,6 +82,24 @@ class Imagen:
         """
         return self.__data
     
+    @data.setter
+    def data(self, nuevo_array: np.ndarray):
+        """
+        Args:
+            nueva_matriz (np.ndarray)
+
+        Raises:
+            TypeError: Si el parámetro ingresado no es un arrau de NumPy.
+        """
+
+        # Verificamos que el parametro ingresado sea un array de numpy
+        if not isinstance(nuevo_array, np.ndarray):
+            raise TypeError(
+                f"Error de tipo: Se espera una array de Numpy (np.ndarray), "
+                f"se recibió un dato del tipo '{type(nuevo_array)}'.")
+        # Asignamos la matriz o array de numpy a la variable privada encapsulada
+        self.__data = nuevo_array
+    
     @property
     def info(self):
         """
@@ -78,7 +107,24 @@ class Imagen:
         Retorna:
             - Info: Objeto de la clase Info que contiene la información técnica de la imagen.
         """
-        return self._info    
+        return self.__info
+    
+    @info.setter
+    def info(self, nueva_info):
+        """
+        Parámetro:
+            nueva_info (Info)
+        Raises:
+            TypeError: Si el parámetro ingresado no es una instancia válida de la clase Info.
+        """
+        # Verificamos que el parametro ingresado sea una instancia de la clase Info
+        if not isinstance(nueva_info, Info):
+            raise TypeError(f"Error de tipo: Se espera un objeto de la clase 'Info', "
+                f"se recibió un dato del tipo '{type(nueva_info)}'.")
+
+        # Asignamos el objeto nueva_info a la variable privada encapsulada
+        self.__info = nueva_info
+        
     
     # ----  Metodo de clase para leer archivos ----
     @classmethod
@@ -114,6 +160,7 @@ class Imagen:
                 return  cls(data = datos, info=None)    #retornamos una instancia de la clase Imagen
             
         else:
+            # Lanzamos un ValueError si el formato no es soportado
             raise ValueError(f"Formato {extension} no soportado")
     
     def visualizar(self):
@@ -125,7 +172,7 @@ class Imagen:
             La apertura de una ventana de Matplotlib con la imagen
         """
         
-        #Visualizacion de la imagen usando matplotlib
+        #Visualizamos la imagen usando matplotlib
         fig, ax = plt.subplots(figsize=(10, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
                                                     #figsize - define el tamaño de la ventana
                                                     #fig - representa toda la ventanta
@@ -150,18 +197,18 @@ class Imagen:
     def bn(self):
         """
         Metodo que convierte una imagen RGB a blanco y negro.
-        Retorna una nueva instancia de la clase Imagen.
         """
-        if len(self.data.shape) == 3: # verificamos la dimension de la imagen
+        # Verificamos la dimension de la imagen
+        if len(self.data.shape) == 3: 
             #Promediamos los canales para pasar a gris
             blanco_negro = np.mean(self.data, axis=2).astype(np.uint8)
 
-            #guardamos en el historial el cambio 
+            # Guardamos el cambio en el historial 
             mensaje = "Se modificó la imagen a blanco y negro"
             self.historial.modificar_historial(mensaje) 
 
-            # retornamos una nueva instancia de la clase Imagen
-            return Imagen(blanco_negro, self.info) 
+            # retornamos el array de numpy modificado
+            return blanco_negro 
         
         #si la imagen es 2D, se devuelve a si misma
         return self
@@ -169,16 +216,9 @@ class Imagen:
                        
 
     def __len__(self):
-        """Permite acceder a la cantidad total de pixeles de la imagen usando la funcion len()"""
-        # Tomamos solo las dos primeras dimensiones del array:
-        # shape puede ser (filas, columnas) o (filas, columnas, canales)
-        filas, columnas = self.data.shape[:2]
-
-        # Calculamos el total de píxeles multiplicando filas por columnas
-        total_pixeles = filas * columnas
-
-        # Retornamos ese valor cuando se usa len(imagen)
-        return total_pixeles
+        """Permite acceder a la cantidad total de píxeles de la imagen usando la función len()."""
+        # .size devuelve automáticamente el total de píxeles (filas * columnas * cortes) si tiene 3 dimensiones o (filas * columnas) si es de 2 dimensiones
+        return self.data.size
     
     def __str__(self):
         """
@@ -187,14 +227,19 @@ class Imagen:
         """
         
         # Obtenemos las dimensiones de la imagen
-        # shape[:2] toma solo las dos primeras dimensiones (filas, columnas)
-        filas, columnas = self.data.shape[:2]
+        filas = self.data.shape[0]
+        columnas = self.data.shape[1]
         
         # Verificamos si la imagen tiene 3 dimensiones (RGB) o 2 (escala de grises)
         if self.data.ndim == 3:
             # Si tiene 3 dimensiones, obtenemos el número de canales
             canales = self.data.shape[2]
-            tipo_imagen = f"RGB ({canales} canales)"
+            # Si el tercer eje tiene 3 canales, asumimos un formato RGB
+            if canales == 3:
+                tipo_imagen = f"Color / RGB (3 canales)"
+            else:
+                # Si tiene más, representa cortes
+                tipo_imagen = f"Resonancia/Tomografía ({canales} cortes)"
         else:
             # Si tiene 2 dimensiones, es escala de grises
             tipo_imagen = "Escala de grises"
@@ -228,10 +273,12 @@ class Imagen:
             - El valor del píxel en la posición indicada.
             - Un bloque de píxeles si se usan slices.
         """
-         #Validacion de rango, que los índices estén dentro de los límites de la matriz
-        filas, columnas = self.data.shape[:2]  #soporta imágenes 2D o 3D
+         # Validamos el rango, que los índices estén dentro de los límites del array
+        filas = self.data.shape[0]
+        columnas = self.data.shape[1] 
 
-        y, x = index  #asumimos que index es una tupla válida
+        # Asumimos que index es una tupla válida
+        y, x = index  
 
         #Si son enteros, verificamos que estén dentro del rango
         if isinstance(y, int) and not (0 <= y < filas):
@@ -255,11 +302,11 @@ class Imagen:
             return self
 
         try:
-            #Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
+            # Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
             #de la imagen (self) para que el filtro pueda acceder a sus atributos.
             imagen_filtrada = filtro.aplicar(self)
             
-            #Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión procesada.
+            # Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión filtrada.
             if imagen_filtrada is not None:
                 #Registramos el cambio en el historial de la original
                 self.__historial.modificar_historial(f"Se aplico un filtro {filtro.tipo}")
