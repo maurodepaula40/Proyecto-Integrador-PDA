@@ -94,16 +94,11 @@ class Filtro:
             - imagen: objeto de la clase Imagen
     
         Retorna:
-            - Un nuevo objeto Imagen con la convolución aplicada
+            - la matriz filtrada
         """
-        # Obtenemos la matriz procesada llamando al método convolucion
-        matriz = self.convolucion(imagen)
-    
-        # Creamos un nuevo objeto Imagen con los datos filtrados
-        imagen_filtrada = Imagen(data=matriz)
-    
-        # Retornamos la instancia nueva filtrada
-        return imagen_filtrada
+        # Retornamos la matriz de numpy filtrada
+        matriz_filtrada = self.convolucion(imagen)
+        return matriz_filtrada
     
 
     def obtener_kernel(self):

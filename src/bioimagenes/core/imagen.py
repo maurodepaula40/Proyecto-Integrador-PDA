@@ -143,7 +143,7 @@ class Imagen:
                                                         # os.path.splitext es una función de Python en el módulo os.path que se 
                                                         # utiliza para dividir una ruta de acceso en un par (raíz, extensión) . 
 
-        #logica para imagenes tomograficas"
+        #logica para imagenes volumétricas"
         if extension in (".nii", ".gz",".dcm"):         #verificamos si extension existe dentro de la tupla
             img_nifti = nb.load(ruta)                   #cargamos la imagen con nibabel
             datos = img_nifti.get_fdata()               #cargamos los datos de la imagen como un array de numpy con get_fdata()
@@ -298,8 +298,7 @@ class Imagen:
             - una nueva instancia de la clase Imagen
         """
         if filtro is None:
-            print("No se proporcionó ningun filtro")
-            return self
+            return print("No se proporcionó ningun filtro")
 
         try:
             # Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
@@ -308,21 +307,13 @@ class Imagen:
             
             # Verificamos si el objeto devuelto es válido y actualizamos los datos internos con la nueva versión filtrada.
             if imagen_filtrada is not None:
+
+                # Modificamos la matriz original y la guardamos en la copia de 'data'
+                self.data = imagen_filtrada
+
                 #Registramos el cambio en el historial de la original
-                self.__historial.modificar_historial(f"Se aplico un filtro {filtro.tipo}")
-
-                print("El filtro se aplicó exitosamente sobre el objeto Imagen.")
-
-                #Retornamos un nuevo objeto, no modificamos self.__data
-                return Imagen(imagen_filtrada.data, self.info)
+                self.historial.modificar_historial(f"Se aplicó filtro: {filtro.tipo.upper()} (Tamaño: {filtro.tamaño}x{filtro.tamaño})")
             
-        #Manejamos errores cuando el objeto filtro no cumple con la estructura esperada.
-        except AttributeError:
-            print("Error: El objeto filtro no es válido.")
-            return self
-        
-        #Capturan cualquier error surgida durante el procesamiento interno del filtro.
+        # Capturamos cualquier error surgido durante el procesamiento interno del filtro.
         except Exception as e:
-            print(f"El tipo de lo que se recibio es: {type(filtro)}")
-            print(f"El error real es: {e}")
-            return self
+            raise RuntimeError(f"Error al procesar el filtro en la imagen: {e}")
