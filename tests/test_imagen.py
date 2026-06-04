@@ -318,3 +318,45 @@ filtro_h = Filtro("sobelhorizontal")
 g_y = filtro_h.aplicar(img)
 img.visualizar()
 print(g_y)
+
+
+# =====================================================================
+# SCRIPT DE PRUEBA CON UNA IMAGEN REAL
+# =====================================================================
+if __name__ == "__main__":
+    # 1. Cargamos una imagen real de tu computadora (reemplazá 'radiografia.jpg' por tu archivo)
+    # cv2.IMREAD_GRAYSCALE la lee directamente en escala de grises
+    ruta = "tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png"
+    imagen_real = Imagen.cargar(ruta)
+
+    if imagen_real is None:
+        print(
+            f"No se pudo encontrar o abrir la imagen en '{ruta}'. Asegurate de que el nombre sea correcto."
+        )
+    else:
+        print(
+            f"Imagen real cargada con éxito. Tamaño original: {imagen_real.data.shape}"
+        )
+
+        # 2. SIMULACIÓN DE PROCESAMIENTO MÉDICO (Generamos valores fuera de rango)
+        # Para probar que nuestra función de normalización realmente funciona, vamos a alterar
+        # la imagen multiplicándola por un factor flotante y sumándole números.
+        # Esto simula lo que pasaría tras aplicar filtros complejos como convoluciones o Sobel.
+        imagen_alterada = (imagen_real.data.astype(np.float32) * 4.5) - 300.0
+
+        print(
+            f"--- Antes de normalizar ---"
+            f"\nMínimo valor en la matriz alterada: {np.min(imagen_alterada)}"
+            f"\nMáximo valor en la matriz alterada: {np.max(imagen_alterada)}"
+        )
+
+        # 3. PROBAMOS NUESTRA FUNCIÓN
+        # Le pasamos la matriz con valores "rotos" (negativos y mayores a 255)
+        imagen_resultado = Imagen.normalizar(imagen_alterada)
+
+        print(
+            f"--- Después de normalizar ---"
+            f"\nMínimo valor resultante: {np.min(imagen_resultado)}"
+            f"\nMáximo valor resultante: {np.max(imagen_resultado)}"
+            f"\nTipo de dato final: {imagen_resultado.dtype}"
+        )
