@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from bioimagenes.medicas.imagen_tomografia import ImagenTomografica
 
-RUTA_TOMOGRAFIA = "docs\AC421363f (1).nii"
+RUTA_TOMOGRAFIA = "docs/AC421363f (1).nii"
 
 # # ==========================================================
 # # TESTS UNITARIOS (arrays creados manualmente)
@@ -314,3 +314,11 @@ RUTA_TOMOGRAFIA = "docs\AC421363f (1).nii"
 
 # # 5. Ver el historial de cambios
 # tomo.mostrar_historial()
+
+
+img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
+
+#tomo = ImagenTomografica(RUTA_TOMOGRAFIA)
+
+
+img.reconstruir_3d(200,300)

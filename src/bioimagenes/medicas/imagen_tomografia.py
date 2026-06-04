@@ -3,6 +3,7 @@ import numpy as np
 from bioimagenes.core.info import Info
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from plotly import graph_objects as go
 
 class ImagenTomografica(Imagen):
     """Clase heredada de Imagen especializada en imagenes tomograficas
@@ -141,10 +142,90 @@ class ImagenTomografica(Imagen):
         self.mostrar_corte()
     
     
-    def reconstruir3D():
-        pass
-    #hacer
-    
+    def reconstruir_3d(self, indice_inicio=0, indice_fin=None):
+
+        volumen = self.data
+
+        if indice_fin is None:
+            indice_fin = volumen.shape[2] - 1
+
+        # Validaciones
+        if indice_inicio < 0 or indice_fin >= volumen.shape[2]:
+            raise ValueError(
+                f"Los índices deben estar entre 0 y {volumen.shape[2]-1}"
+            )
+
+        if indice_inicio > indice_fin:
+            raise ValueError(
+                "indice_inicio debe ser menor o igual que indice_fin"
+            )
+
+        frames = []
+
+        for i in range(indice_inicio, indice_fin + 1):
+
+            frame = go.Frame(
+                data=[
+                    go.Surface(
+                        z=np.zeros_like(volumen[:, :, i]),
+                        surfacecolor=volumen[:, :, i],
+                        colorscale="Gray",
+                        showscale=False
+                    )
+                ],
+                name=str(i)
+            )
+
+            frames.append(frame)
+
+        fig = go.Figure(
+            data=[
+                go.Surface(
+                    z=np.zeros_like(volumen[:, :, indice_inicio]),
+                    surfacecolor=volumen[:, :, indice_inicio],
+                    colorscale="Gray",
+                    showscale=False
+                )
+            ],
+            frames=frames
+        )
+
+        sliders = [{
+            "steps": [
+                {
+                    "method": "animate",
+                    "label": str(k),
+                    "args": [
+                        [str(k)],
+                        {
+                            "mode": "immediate",
+                            "frame": {"duration": 0, "redraw": True},
+                            "transition": {"duration": 0}
+                        }
+                    ]
+                }
+                for k in range(indice_inicio, indice_fin + 1)
+            ]
+        }]
+
+        fig.update_layout(
+            title=f"Cortes tomográficos ({indice_inicio}-{indice_fin})",
+            sliders=sliders,
+            scene=dict(
+                xaxis_visible=False,
+                yaxis_visible=False,
+                zaxis_visible=False
+            ),
+            width=900,
+            height=700
+        )
+
+        # Genera un HTML y lo abre automáticamente
+        fig.write_html(
+            "reconstruccion_tomografia.html",
+            auto_open=True
+        )
+            
 
     def ajustar_ventana(self, minimo:float, maximo:float):
         """Ajusta la ventana de visualización."""
