@@ -200,8 +200,8 @@ class ImagenRadiografia(Imagen):
         """
         Detecta los bordes anatómicos de la radiografía.
         """
-        filtro_h = Filtro(nombre="sobelhorizontal")
-        filtro_v = Filtro(nombre="sobelvertical")
+        filtro_h = Filtro(nombre="sobelhorizontalx7")
+        filtro_v = Filtro(nombre="sobelverticalx7")
 
         try:
             # 2. Obtenemos los gradientes individuales
@@ -209,10 +209,10 @@ class ImagenRadiografia(Imagen):
             g_y = filtro_v.aplicar(self)
 
             # Combinamos ambos gradientes
-            matriz_combinada = g_x.astype(np.float32) + g_y.astype(np.float32)
+            img_filtrada = np.sqrt(g_x**2 + g_y**2)
 
             # Guardamos el resultado final en 'self.data'
-            self.data = np.clip(matriz_combinada, 0, 255).astype(np.uint8)
+            self.data = np.clip(img_filtrada, 0, 255).astype(np.uint8)
             
             # Registramos el cambio en el historial.
             self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")

@@ -116,32 +116,79 @@ class Filtro:
             / (self.tamaño * self.tamaño),
             # Filtro Sobel Horizontal (Detecta bordes superiores/inferiores)
             "sobelhorizontal": np.array(
-                [[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32
+                [[-1, -2, -1],
+                 [0, 0, 0], 
+                 [1, 2, 1]], dtype=np.float32
             ),
             "topsobel": np.array(
-                [[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32
+                [[-1, -2, -1],
+                 [0, 0, 0],
+                 [1, 2, 1]], dtype=np.float32
             ),
             # Filtro Sobel Vertical (Detecta bordes laterales)
             "sobelvertical": np.array(
-                [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32
+                [[-1, 0, 1],
+                 [-2, 0, 2],
+                 [-1, 0, 1]], dtype=np.float32
             ),
             # Filtro Sobel Izquierdo
             "leftsobel": np.array(
-                [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32
+                [[-1, 0, 1],
+                 [-2, 0, 2],
+                 [-1, 0, 1]], dtype=np.float32
             ),
             # Filtro Sobel Derecho
             "rightsobel": np.array(
-                [[1, 0, -1], [2, 0, -2], [1, 0, -1]], dtype=np.float32
+                [[1, 0, -1],
+                 [2, 0, -2],
+                 [1, 0, -1]], dtype=np.float32
             ),
             # Filtro de Realce de Detalles (Sharpening)
             "sharpen": np.array(
-                [[0, -1, 0], [-1, 5, -1], [0, -1, 0]], dtype=np.float32
+                [[0, -1, 0],
+                 [-1, 5, -1],
+                 [0, -1, 0]], dtype=np.float32
             ),
             # Filtro Laplaciano
             "laplaciano": np.array(
-                [[0, -1, 0], [-1, 4, -1],[0, -1, 0]], dtype=np.float32
+                [[0, -1, 0],
+                 [-1, 4, -1],
+                 [0, -1, 0]], dtype=np.float32
+            ),
+            #Filtro Sobel Horizontal
+            "sobelhorizontalx5": np.array([[2,2,4,2,2],
+                                           [1,1,2,1,1],
+                                           [0,0,0,0,0],
+                                           [-1,-1,-2,-1,-1],
+                                           [-2,-2,-4,-2,-2]], dtype=np.float32
+            ),
+            # Filtro Sobel Vertical
+            "sobelverticalx5": np.array([[2,1,0,-1,-2],
+                                         [2,1,0,-1,-2],
+                                         [4,2,0,-2,-4],
+                                         [2,1,0,-1,-2],
+                                         [2,1,0,-1,-2]], dtype=np.float32
+            ),
+            # Filtro Sobel Vertical de 7x7
+            "sobelverticalx7": np.array([[-1,-2,-3,0,3,2,1],
+                                        [-2,-3,-5,0,5,3,2],
+                                        [-3,-5,-10,0,10,5,3],
+                                        [-4,-8,-15,0,15,8,4],
+                                        [-3,-5,-10,0,10,5,3],
+                                        [-2,-3,-5,0,5,3,2],
+                                        [-1,-2,-3,0,3,2,1]]
+            ),
+            # Filtro Sobe Horizontal de 7x7
+            "sobelhorizontalx7": np.array([[-1,-2,-3,-4,-3,-2,-1],
+                                           [-2,-3,-5,-8,-5,-3,-2],
+                                           [-3,-5,-10,-15,-10,-5,-3],
+                                           [0,0,0,0,0,0,0],
+                                           [3,5,10,15,10,5,3],
+                                           [2,3,5,8,5,3,2],
+                                           [1,2,3,4,3,2,1]], dtype=np.float32
             )
         }
+        
 
         # Obtenemos el kernel del diccionario
         kernel_encontrado = catalogo_kernels.get(self.tipo)
@@ -149,7 +196,7 @@ class Filtro:
         # Si el resultado es None, significa que el usuario escribió un filtro que no existe
         if kernel_encontrado is None:
             raise ValueError(
-                f"Error: El filtro '{self.tipo}' no existe. "
+                f"Error: El filtro '{self.tipo}' no existe en el catalogo de kernels."
                 f"Los filtros disponibles son: {list(catalogo_kernels.keys())}"
             )
         return kernel_encontrado

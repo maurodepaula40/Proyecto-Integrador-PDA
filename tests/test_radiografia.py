@@ -277,9 +277,17 @@ from bioimagenes.core.imagen import Imagen
 
 
 # 1. 'objeto_img' YA ES una instancia de ImagenRadiografica gracias a tu método .cargar()
-objeto_img = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/317759408657031098460852906419716899073_2rq56f.png")
+objeto_img = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
+objeto_img.visualizar()
 objeto_img.detectar_bordes()
 objeto_img.visualizar()
+radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
+radiografia.visualizar()
+radiografia.detectar_bordes()
+radiografia.visualizar()
+
+
+
 # =====================================================================
 # 2. EJECUCIÓN DEL TEST AUTOMÁTICO
 # =====================================================================
@@ -324,6 +332,3 @@ def ejecutar_pruebas():
 
 if __name__ == "__main__":
     ejecutar_pruebas()
-
-
-
