@@ -112,18 +112,16 @@ class ImagenRadiografia(Imagen):
         """
 
         # Convierto la imagen a float para poder hacer operaciones matemáticas
-        datos = self.data.astype(np.float64)
 
         #Tomamos el gris medio (128) como referencia.
         #Primero restamos 128 para centrar los valores alrededor de 0, luego multiplicamos por el factor de contraste y finalmente
         #volvemos a sumar 128 para regresar al rango normal.
-        resultado = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
+        matriz_contrastada = (self.data - 128.0) * factor + 128.0
+
+        self.data = Imagen.normalizar(matriz_contrastada)
 
         # Registramos en el historial
         self.info.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
-
-        #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
-        return ImagenRadiografia(resultado, self.tipo_estudio, self.brillo)
     
     def invertir_intensidades(self):
         """
@@ -144,7 +142,7 @@ class ImagenRadiografia(Imagen):
         self.info.historial.modificar_historial("Intensidades invertidas")
 
         # Retornamos una nueva imagen radiográfica
-        return ImagenRadiografia(resultado, tipo_estudio=self.info["tipo_estudio"], brillo=self.info["brillo"])
+        return resultado
 
     def ecualizar_intensidades(self):
         """
@@ -179,12 +177,8 @@ class ImagenRadiografia(Imagen):
         ecual_max = ecual.max()
 
         # Aplicamos la fórmula de normalización para redistribuir los valores del array entre 0 y 255.
-        ecual_normalizada = ((ecual - ecual_min) * 255) / (ecual_max - ecual_min) # Restamos el mínimo para que la escala comience en 0.
-                                                                                  # Multiplicamos por 255 para llevar los valores al rango típico de una imagen de 8 bits.
-                                                                                  # Dividimos por (ecual_max - ecual_min) para ajustar proporcionalmente toda la escala.
+        ecual_normalizada = self.normalizar(ecual)
         
-        # Convertimos los resultados a enteros de 8 bits
-        ecual_normalizada = ecual_normalizada.astype(np.uint8)
 
         resultado = ecual_normalizada[self.data] #usa cada valor de self.data como un indice para ecual_normalizada
                                                  #el resultado es una matriz con los valores escualizados para cada uno de los indices
@@ -193,8 +187,7 @@ class ImagenRadiografia(Imagen):
         self.info.historial.modificar_historial("Intensidades ecualizadas")
 
         # Retornamos una nueva instancia de ImagenRadiografia con la imagen ecualizada y conservando los metadatos originales.
-        return ImagenRadiografia(resultado,tipo_estudio=self.info["tipo_estudio"],brillo=self.info["brillo"])
-
+        return resultado
 
     def detectar_bordes(self):
         """
@@ -212,7 +205,7 @@ class ImagenRadiografia(Imagen):
             img_filtrada = np.sqrt(g_x**2 + g_y**2)
 
             # Guardamos el resultado final en 'self.data'
-            self.data = np.clip(img_filtrada, 0, 255).astype(np.uint8)
+            self.data = self.normalizar(img_filtrada)
             
             # Registramos el cambio en el historial.
             self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")
