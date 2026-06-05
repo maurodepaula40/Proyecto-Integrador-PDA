@@ -1,4 +1,4 @@
-#from bioimagenes.core.imagen import Imagen
+from bioimagenes.core.imagen import Imagen
 import numpy as np
 from scipy.signal import convolve2d
 
@@ -73,16 +73,9 @@ class Filtro:
         if "sobel" in self.tipo:
             array_filtrado = np.abs(array_filtrado)
 
-        # Convertimos cualquier profundidad de bits (uint16, uint32, uint64) a uint8
-        if objeto_imagen.data.dtype != np.uint8:
-            # np.iinfo nos da las propiedades del tipo de dato (ej: uint16 -> max = 65535)
-            valor_maximo_original = np.iinfo(objeto_imagen.data.dtype).max
-            
-            # Normalizamos dinámicamente usando ese máximo y escalamos a 255.0
-            array_filtrado = (array_filtrado / float(valor_maximo_original)) * 255.0
+        # escalamos la imagen a 0 y 255
+        array_convolucionado = Imagen.normalizar(array_filtrado)
 
-        # Aseguramos que los valores están en el rango (0, 255) y convertimos a uint8
-        array_convolucionado = np.clip(array_filtrado, 0, 255).astype(np.uint8)
         return array_convolucionado
 
     def aplicar(self, imagen:object):

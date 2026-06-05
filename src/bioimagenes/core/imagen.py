@@ -5,7 +5,6 @@ from PIL import Image as PILImage
 import nibabel as nb
 from bioimagenes.core.info import Info
 from bioimagenes.core.historial import Historial
-from bioimagenes.filtros.filtro import Filtro
 
 class Imagen:
     """
@@ -166,7 +165,7 @@ class Imagen:
             # Lanzamos un ValueError si el formato no es soportado
             raise ValueError(f"Formato {extension} no soportado")
     
-    def visualizar(self):
+    def visualizar(self, titulo:str, data:np.ndarray=None):
         """
         Permite mostrar una imagen almacenada utilizando la librería Matplotlib
         Para ver imagenes tomograficas, primero se debe obtener un slice o corte y despues visualizar
@@ -174,6 +173,10 @@ class Imagen:
         Retorna:
             La apertura de una ventana de Matplotlib con la imagen
         """
+        if data is None:
+            img = self.data
+        else:
+            img = data
         
         #Visualizamos la imagen usando matplotlib
         fig, ax = plt.subplots(figsize=(10, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
@@ -181,20 +184,18 @@ class Imagen:
                                                     #fig - representa toda la ventanta
                                                     #ax - representa el area donde va la imagen
 
-        img = self.data
+        
         if img.dtype.kind == "f":
             img = np.clip(img, 0.0, 1.0)
 
         if img.ndim == 2:
             im = ax.imshow(img, cmap="gray", interpolation="none")
-            titulo = getattr(self, "titulo_actual", "Imagen en Escala de Grises")
-            ax.set_title(titulo)
         else:
             ax.imshow(img, interpolation="none")
-            titulo = getattr(self, "titulo_actual", "Imagen RGB")
-            ax.set_title(titulo)
 
+        ax.set_title(titulo)
         plt.tight_layout()
+        plt.axis("off")
         plt.show()
 
     def bn(self):
@@ -300,6 +301,8 @@ class Imagen:
         Retorna:
             - una nueva instancia de la clase Imagen
         """
+        from bioimagenes.filtros.filtro import Filtro
+
         if filtro is None:
             return print("No se proporcionó ningun filtro")
 
@@ -360,3 +363,14 @@ class Imagen:
         matriz_normalizada = np.clip(matriz_normalizada, 0, 255).astype(np.uint8)
 
         return matriz_normalizada
+    
+
+    def ver_imgOriginal(self, titulo: str = "Imagen Original"):
+        """
+        Extrae la matriz original (self.original) y la envía
+        al método visualizar..
+        """
+        return self.visualizar(titulo=titulo, data=self.original)
+    
+            
+       
