@@ -24,6 +24,9 @@ class ImagenTermografica(Imagen):
         Convierte los píxeles de intensidad (0 a 255) a valores de temperatura reales
         en grados Celsius basándose en un rango mínimo y máximo.
         """
+        # Guardamos temp_min y temp_max
+        self.temp_min = temp_min
+        self.temp_max = temp_max
         # Validamos el rango
         if temp_min >= temp_max:
             raise ValueError(f"Error: La temperatura mínima ({temp_min}) debe ser menor que la máxima ({temp_max}).")
@@ -37,11 +40,11 @@ class ImagenTermografica(Imagen):
         # Luego lo multiplicamos por el tamaño del rango térmico y le sumamos el piso (temp_min).
         matriz_temperaturas = (intensidades_float / 255.0) * (temp_max - temp_min) + temp_min
 
-        # Modificamos in place, guardamos la matriz de temperaturas reales en el objeto
+        # Modificamos in place, guardamos la matriz de temperaturas en el objeto
         self.data = matriz_temperaturas
 
         # Asignamos un titulo
-        self.titulo_actual = f"Matriz Térmica Calibrada ({temp_min}°C a {temp_max}°C)"
+        self.titulo_actual = f"Imagen Termográfica ({temp_min}°C a {temp_max}°C)"
 
         # Registramos en el historial
         self.historial.modificar_historial(f"Conversión a temperatura: rango [{temp_min}, {temp_max}] °C")
@@ -75,10 +78,10 @@ class ImagenTermografica(Imagen):
         self.data = (matriz_rgb_float * 255.0).astype(np.uint8)
 
         # Agregamos un titulo
-        self.titulo_actual = f"Mapa de Calor Térmico (Rango: {data_min:.1f}°C a {data_max:.1f}°C)"
+        self.titulo_actual = f"Mapa de Calor (Rango: {data_min:.1f}°C a {data_max:.1f}°C)"
 
         # Registramos el cambio en el historial
-        self.historial.modificar_historial("Imagen Radiográfica convertida a mapa de calor térmico")
+        self.historial.modificar_historial("Imagen Radiográfica convertida a mapa de calor")
 
     def segmentar_por_rangos(self,rango_min:int|float,rango_max:int|float):
         """

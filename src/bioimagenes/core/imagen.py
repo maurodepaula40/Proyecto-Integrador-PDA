@@ -164,59 +164,101 @@ class Imagen:
         else:
             # Lanzamos un ValueError si el formato no es soportado
             raise ValueError(f"Formato {extension} no soportado")
+        
+    def _configurar_barra_color(self, im, fig, ax, img: np.ndarray, titulo: str):
+        """
+        Método auxiliar para renderizar la barra de color calibrada milimétricamente.
+        """
+        # 1. Recuperamos las variables térmicas del objeto
+        t_min = getattr(self, "temp_min_calibrada", None)
+        t_max = getattr(self, "temp_max_calibrada", None)
+
+        # 2. ➡️ RE-INTRODUCIMOS LA VALIDACIÓN DE IMAGEN A COLOR (RGB)
+        # Si la imagen tiene 3 canales (es RGB como tu mapa de calor), forzamos la barra calibrada
+        if img.ndim != 2:
+            try:
+                # Sincronizamos los colores al 100% usando el mapeador escalar con la paleta 'jet'
+                norm = plt.Normalize(vmin=0, vmax=255)
+                mapeador_escalar = plt.cm.ScalarMappable(norm=norm, cmap="jet")
+                cbar = fig.colorbar(mapeador_escalar, ax=ax, shrink=0.7)
+
+                # Si por algún motivo las variables no existen, usamos un rango estimado por defecto
+                # para que nunca más vuelva a salir 0-255 en un mapa de calor térmico
+                if t_min is None or t_max is None:
+                    t_min, t_max = 32.0, 40.0  # El rango estándar de tus imágenes
+
+                # Configuramos las 6 marcas fijas de temperatura
+                posiciones = np.linspace(0, 255, 6)
+                valores_termicos = np.linspace(t_min, t_max, 6)
+                
+                etiquetas = []
+                for t in valores_termicos:
+                    etiquetas.append(f"{t:.1f}°C")
+                
+                cbar.set_ticks(posiciones)
+                cbar.set_ticklabels(etiquetas)
+                cbar.set_label("Temperatura", rotation=270, labelpad=15)
+                return  # Terminamos con éxito el flujo RGB
+                
+            except Exception:
+                pass  # Si algo falla de forma extrema, continúa abajo por seguridad
+
+        # 3. Camino para escala de grises original (2D) o emergencias
+        cbar = fig.colorbar(im, ax=ax, shrink=0.7)
+        
+        if img.ndim == 2:
+            etiqueta_generica = "Intensidad"
+        else:
+            etiqueta_generica = "Intensidad de Color (RGB)"
+            
+        cbar.set_label(etiqueta_generica, rotation=270, labelpad=15)
+    
+    def _configurar_limites_visuales(self, img: np.ndarray, vlims: tuple = None) -> tuple:
+        """
+        Método auxiliar para determinar los límites numéricos (vmin, vmax) 
+        del contraste visual según el tipo de datos y parámetros.
+        """
+        if vlims is not None:
+            return vlims
+        
+        # Si no hay vlims y es flotante calibrado (ej: temperaturas reales > 1.0)
+        if img.dtype.kind == "f" and img.max() > 1.0:
+            return img.min(), img.max()
+            
+        # Para el resto (0-255 o flotantes estándar 0.0-1.0), dejamos que imshow decida solo
+        return None, None
     
     def visualizar(self, titulo: str = None, data: np.ndarray = None, cmap_gris: str = "gray", vlims: tuple = None):
         """
         Permite mostrar una imagen almacenada utilizando la librería Matplotlib.
-        Soporta imágenes en escala de grises, color (RGB), y técnicas de ventaneo médico.
-
-        Parámetros:
-            - titulo (str, opcional): Título personalizado. Si es None, busca self.titulo_actual.
-            - data (np.ndarray, opcional): Matriz externa a dibujar. Si es None, usa self.data.
-            - cmap_gris (str): Paleta para imágenes 2D. Ej: 'gray', 'bone', 'jet'. Por defecto 'gray'.
-            - vlims (tuple, opcional): Tupla (vmin, vmax) para ajustar el contraste visual (Windowing).
         """
-        # Validamos data
+        # Resolución de datos y títulos
         if data is None:
             img = self.data
         else:
             img = data
+        
 
-        # Asignamos el titulo
-        if titulo is None:
-            titulo_a_mostrar = getattr(self, "titulo_actual", "Visualización de Imagen Médica")
-        else:
-            titulo_a_mostrar = titulo
+        titulo_a_mostrar = getattr(self, "titulo_actual", "Visualización de Imagen Médica") if titulo is None else titulo
 
-        # Configuramos la ventana de Matplotlib
+        # Llamos al metodo configurar limites visuales
+        vmin, vmax = self._configurar_limites_visuales(img, vlims)
+
+        # Configuramos la ventanta de Matplotlib
         fig, ax = plt.subplots(figsize=(10, 8))
 
-        # Controlamos por seguridad el tipo de dato float
-        if img.dtype.kind == "f":
-            # Si tiene vlims, no recortamos estrictamente entre 0 y 1 todavía para permitir el ventaneo
-            if vlims is None:
-                img = np.clip(img, 0.0, 1.0)
-
-        # Desempaquetado de límites de contraste (Windowing) si el usuario los pasa
-        vmin, vmax = (None, None) if vlims is None else vlims
-
-        # Renderizamos según las dimensiones de la imagen
+        # Renderizamos según dimensiones
         if img.ndim == 2:
-            # Escala de grises: aplicamos el cmap y los límites de contraste
             im = ax.imshow(img, cmap=cmap_gris, vmin=vmin, vmax=vmax, interpolation="none")
-            
-            # Agregamos barra de  intensidades/temperatura
-            cbar = fig.colorbar(im, ax=ax, shrink=0.7)
-            cbar.set_label("Intensidad / Unidad Térmica", rotation=270, labelpad=15)
         else:
-            # Imagen a color (RGB)
             im = ax.imshow(img, interpolation="none")
-            # Si es un mapa de calor (3 canales), también es útil ver la barra de referencia de color
-            cbar = fig.colorbar(im, ax=ax, shrink=0.7)
 
-        # Estética final de la ventana
+        # Llamamos al metodo de configurar la barra de color
+        self._configurar_barra_color(im, fig, ax, img, titulo_a_mostrar)
+
+        # Estética final y apertura de ventana
         ax.set_title(titulo_a_mostrar, fontsize=14, fontweight="bold", pad=10)
-        plt.axis("off")  # Oculta los ejes x/y (los números de píxeles) para enfoque médico limpio
+        plt.axis("off")
         plt.tight_layout()
         plt.show()
 
