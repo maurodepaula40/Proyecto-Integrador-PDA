@@ -44,7 +44,7 @@ class ImagenTermografica(Imagen):
         self.titulo_actual = f"Matriz Térmica Calibrada ({temp_min}°C a {temp_max}°C)"
 
         # Registramos en el historial
-        self.info.historial.modificar_historial(f"Conversión a temperatura: rango [{temp_min}, {temp_max}] °C")
+        self.historial.modificar_historial(f"Conversión a temperatura: rango [{temp_min}, {temp_max}] °C")
 
 
     def mapa_calor(self):

@@ -165,37 +165,59 @@ class Imagen:
             # Lanzamos un ValueError si el formato no es soportado
             raise ValueError(f"Formato {extension} no soportado")
     
-    def visualizar(self, titulo:str, data:np.ndarray=None):
+    def visualizar(self, titulo: str = None, data: np.ndarray = None, cmap_gris: str = "gray", vlims: tuple = None):
         """
-        Permite mostrar una imagen almacenada utilizando la librería Matplotlib
-        Para ver imagenes tomograficas, primero se debe obtener un slice o corte y despues visualizar
+        Permite mostrar una imagen almacenada utilizando la librería Matplotlib.
+        Soporta imágenes en escala de grises, color (RGB), y técnicas de ventaneo médico.
 
-        Retorna:
-            La apertura de una ventana de Matplotlib con la imagen
+        Parámetros:
+            - titulo (str, opcional): Título personalizado. Si es None, busca self.titulo_actual.
+            - data (np.ndarray, opcional): Matriz externa a dibujar. Si es None, usa self.data.
+            - cmap_gris (str): Paleta para imágenes 2D. Ej: 'gray', 'bone', 'jet'. Por defecto 'gray'.
+            - vlims (tuple, opcional): Tupla (vmin, vmax) para ajustar el contraste visual (Windowing).
         """
+        # Validamos data
         if data is None:
             img = self.data
         else:
             img = data
-        
-        #Visualizamos la imagen usando matplotlib
-        fig, ax = plt.subplots(figsize=(10, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
-                                                    #figsize - define el tamaño de la ventana
-                                                    #fig - representa toda la ventanta
-                                                    #ax - representa el area donde va la imagen
 
-        
-        if img.dtype.kind == "f":
-            img = np.clip(img, 0.0, 1.0)
-
-        if img.ndim == 2:
-            im = ax.imshow(img, cmap="gray", interpolation="none")
+        # Asignamos el titulo
+        if titulo is None:
+            titulo_a_mostrar = getattr(self, "titulo_actual", "Visualización de Imagen Médica")
         else:
-            ax.imshow(img, interpolation="none")
+            titulo_a_mostrar = titulo
 
-        ax.set_title(titulo)
+        # Configuramos la ventana de Matplotlib
+        fig, ax = plt.subplots(figsize=(10, 8))
+
+        # Controlamos por seguridad el tipo de dato float
+        if img.dtype.kind == "f":
+            # Si tiene vlims, no recortamos estrictamente entre 0 y 1 todavía para permitir el ventaneo
+            if vlims is None:
+                img = np.clip(img, 0.0, 1.0)
+
+        # Desempaquetado de límites de contraste (Windowing) si el usuario los pasa
+        vmin, vmax = (None, None) if vlims is None else vlims
+
+        # Renderizamos según las dimensiones de la imagen
+        if img.ndim == 2:
+            # Escala de grises: aplicamos el cmap y los límites de contraste
+            im = ax.imshow(img, cmap=cmap_gris, vmin=vmin, vmax=vmax, interpolation="none")
+            
+            # Agregamos barra de  intensidades/temperatura
+            cbar = fig.colorbar(im, ax=ax, shrink=0.7)
+            cbar.set_label("Intensidad / Unidad Térmica", rotation=270, labelpad=15)
+        else:
+            # Imagen a color (RGB)
+            im = ax.imshow(img, interpolation="none")
+            # Si es un mapa de calor (3 canales), también es útil ver la barra de referencia de color
+            cbar = fig.colorbar(im, ax=ax, shrink=0.7)
+
+        # Estética final de la ventana
+        ax.set_title(titulo_a_mostrar, fontsize=14, fontweight="bold", pad=10)
+        plt.axis("off")  # Oculta los ejes x/y (los números de píxeles) para enfoque médico limpio
         plt.tight_layout()
-        plt.axis("off")
         plt.show()
 
     def bn(self):
@@ -344,7 +366,6 @@ class Imagen:
             # Obtenemos las propiedades del formato original (ej: para uint16 el max es 65535)
             valor_maximo_original = np.iinfo(matriz_float.data.dtype).max
 
-        
             # Escalamos a 0 y 255
             matriz_normalizada = (matriz_float/float(valor_maximo_original)) * 255.0
             
