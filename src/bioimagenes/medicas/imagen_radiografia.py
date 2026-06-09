@@ -120,6 +120,8 @@ class ImagenRadiografica(Imagen):
 
         self.data = Imagen.normalizar(matriz_contrastada)
 
+        self.titulo_actual = f"Imagen RX con mejora de contraste con factor: {factor} "
+
         # Registramos en el historial
         self.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
     
@@ -139,6 +141,8 @@ class ImagenRadiografica(Imagen):
 
         # Registramos la transformación en el historial
         self.historial.modificar_historial("Intensidades invertidas")
+
+        self.titulo = f"Imagen RX con las intensidades invertidas"
 
         # Retornamos una nueva imagen radiográfica
         return resultado
@@ -205,6 +209,8 @@ class ImagenRadiografica(Imagen):
 
             # Guardamos el resultado final en 'self.data'
             self.data = Imagen.normalizar(img_filtrada)
+
+            self.titulo_actual = f"Imagen RX con filtro de deteccion de bordes"
             
             # Registramos el cambio en el historial.
             self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")
@@ -250,7 +256,7 @@ class ImagenRadiografica(Imagen):
         self.data = self.data[y_min:y_max, x_min:x_max]
 
         # Asignamos el nuevo título detallando el área del recorte al objeto actual
-        self.titulo = f"Recorte [X: {x_min}-{x_max}, Y: {y_min}-{y_max}]"
+        self.titulo_actual = f"Recorte [X: {x_min}-{x_max}, Y: {y_min}-{y_max}]"
 
         # Registramos la acción de recorte en el historial de este mismo objeto
         self.historial.modificar_historial(f"Se recortó la imagen a la región de interés.")

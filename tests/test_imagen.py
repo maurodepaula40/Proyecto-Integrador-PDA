@@ -7,12 +7,7 @@ from bioimagenes.core.historial import Historial
 from bioimagenes.filtros.filtro import Filtro
 import numpy as np
 import matplotlib.pyplot as plt
-#import pyvista as pv
-#import cv2
-from bioimagenes.medicas.imagen_termografica import imagen_termografica
-import meshlib.mrmeshpy as mm        
-import meshlib.mrmeshnumpy as mrmesh_np
-from meshlib import mrviewerpy as mv
+from bioimagenes.medicas.imagen_radiografia import ImagenRadiografica
 import pydicom
 
 
@@ -50,7 +45,7 @@ import pydicom
 
 
 # Ruta de la imagen de prueba
-RUTA_IMAGEN = "tests/imagenes_test/AC421363f.nii"
+RUTA_IMAGEN = "tests/imagenes_test/radiografias/46523715740384360192496023767246369337_veyewt.png"
 
 # # TEST 1: Cargar imagen real y verificar len()
 #print("TEST 1: Verificar len() con imagen real")
@@ -310,14 +305,16 @@ RUTA_IMAGEN = "tests/imagenes_test/AC421363f.nii"
 #img_tomografica= Imagen.cargar(RUTA_IMAGEN)
 #print(type(img_tomografica.data))
 
-datovich = np.random.randint(0, 255, (100, 100)) 
-img = Imagen(data=datovich, info=None)
-img.visualizar()
-
-filtro_h = Filtro("sobelhorizontal")
-g_y = filtro_h.aplicar(img)
-img.visualizar()
-print(g_y)
+img_rx = ImagenRadiografica.cargar(RUTA_IMAGEN)
+img_rx.visualizar(titulo="RX de torax")
+img_rx.seleccionar_region_interes(500,1000,300,1500)
+img_rx.visualizar()
+img_rx.detectar_bordes()
+img_rx.visualizar()
+img_rx.ver_imgOriginal()
+img_rx.detectar_bordes()
+img_rx.visualizar()
+print(img_rx.historial)
 
 
 # =====================================================================
