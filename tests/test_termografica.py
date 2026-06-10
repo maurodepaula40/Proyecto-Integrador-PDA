@@ -7,10 +7,13 @@ ruta2 = "tests/imagenes_test/radiografias/21684011136696401382954316651201335809
 
 termografia = ImagenTermografica.cargar(ruta=ruta)
 termografia.convertir_a_temperatura(32,40)
+termografia.mapa_calor()
 termografia.visualizar()
+print(termografia.historial)
 
 radiografia = ImagenRadiografica.cargar(ruta2)
 radiografia.visualizar()
 radiografia.detectar_bordes()
 radiografia.visualizar()
+print(radiografia.historial)
 

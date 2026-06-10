@@ -92,7 +92,7 @@ class Historial():
             texto += f"\n {cambio['fecha']} | {cambio['operacion']}"
         
         texto += f"""\n==================================================
- Total operaciones: {len(self.__lista_cambios)} | Último: {self.ultimo_cambio}
+ Total operaciones: {len(self.lista_cambios)} | Último: {self.ultimo_cambio}
 =================================================="""
 
         return texto
