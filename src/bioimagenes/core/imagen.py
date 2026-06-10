@@ -55,7 +55,7 @@ class Imagen:
         self.original = array.copy()
         self.__data = self.original
 
-        # Verificamos el parametro info
+        # Verificamos el parametro info y lo encapsulamos de manera privada
         if info is not None:
             self.__info = info
         else:
@@ -64,8 +64,7 @@ class Imagen:
         # Instanciamos el historial de manera encapsulada privada
         self.__historial = Historial()
         
-        
-        # Asignamos a la variable historial el objeto Historial()
+    
     @property
     def historial(self):
         """
@@ -167,14 +166,13 @@ class Imagen:
         
     def _configurar_barra_color(self, im, fig, ax, img: np.ndarray, titulo: str):
         """
-        Método auxiliar para renderizar la barra de color calibrada milimétricamente.
+        Método auxiliar para renderizar la barra de color.
         """
-        # 1. Recuperamos las variables térmicas del objeto
+        # Recuperamos las variables térmicas del metodo convertir_a_temperatura de la clase ImagenTermografica
         t_min = getattr(self, "temp_min_calibrada", None)
         t_max = getattr(self, "temp_max_calibrada", None)
 
-        # 2. ➡️ RE-INTRODUCIMOS LA VALIDACIÓN DE IMAGEN A COLOR (RGB)
-        # Si la imagen tiene 3 canales (es RGB como tu mapa de calor), forzamos la barra calibrada
+        # Si la imagen es RGB, forzamos la barra
         if img.ndim != 2:
             try:
                 # Sincronizamos los colores al 100% usando el mapeador escalar con la paleta 'jet'
@@ -203,7 +201,7 @@ class Imagen:
             except Exception:
                 pass  # Si algo falla de forma extrema, continúa abajo por seguridad
 
-        # 3. Camino para escala de grises original (2D) o emergencias
+        # Si la iamgen esta en escala de grises (2D)
         cbar = fig.colorbar(im, ax=ax, shrink=0.7)
         
         if img.ndim == 2:
@@ -280,8 +278,6 @@ class Imagen:
         
         #si la imagen es 2D, se devuelve a si misma
         return self
-
-                       
 
     def __len__(self):
         """Permite acceder a la cantidad total de píxeles de la imagen usando la función len()."""
@@ -362,13 +358,11 @@ class Imagen:
         Aplica un objeto de tipo Filtro sobre la imagen. Registra el evento en la imagen original
         Parametro:
             - filtro: Filtro es un objeto
-        Retorna:
-            - una nueva instancia de la clase Imagen
         """
         from bioimagenes.filtros.filtro import Filtro
 
         if filtro is None:
-            return print("No se proporcionó ningun filtro")
+            raise ValueError("No se proporcionó ningun objeto Filtro")
 
         try:
             # Invocamos el método aplicar de la clase Filtro pasándole la instancia completa
