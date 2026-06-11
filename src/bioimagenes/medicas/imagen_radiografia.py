@@ -10,7 +10,7 @@ from bioimagenes.core.info import Info
 from bioimagenes.filtros.filtro import Filtro
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-class ImagenRadiografia(Imagen):
+class ImagenRadiografica(Imagen):
     """
     Clase heredada de Imagen especializada en radiografías digitales.
 
@@ -72,36 +72,53 @@ class ImagenRadiografia(Imagen):
         """Retorna la región de interés actual o None si no fue definida."""
         return self.region_interes
 
-    #Sobreescribimos el método heredado de Imagen para poder ajustar la visualización segun el brillo definido
-    #def visualizar(self):
-    #    """
-    #    Visualiza la radiografía aplicando el brillo definido en Info.
+    def ajustar_brillo(self, brillo: int):
+        """
+        Ajusta el brillo de la radiografía modificando la imagen actual.
 
-#        El brillo se suma a cada píxel antes de mostrar la imagen.
-#        Valores positivos aclaran la imagen, negativos la oscurecen.
-#        Hereda la estructura de visualizar() de Imagen y agrega el ajuste de brillo.
-#        """
-#        #Visualizacion de la imagen usando matplotlib (igual que lo hace Imagen)
-#        fig, ax = plt.subplots(figsize=(8, 8)) #plt.subplots() crea la ventana y un conjunto de ejes (area donde va la imagen)
-                                                    #figsize - define el tamaño de la ventana
-                                                    #fig - representa toda la ventanta
-                                                    #ax - representa el area donde va la imagen
+        Primero normaliza la imagen original al rango 0-255 y luego suma el brillo.
+        Esto evita que la imagen quede completamente blanca si los datos originales
+        están en otro rango, por ejemplo 0-4095 o 0-65535.
 
-        # Aplicamos el brillo: sumamos el valor a cada píxel y acotamos a 0-255
-        # Convertimos a int32 para evitar errores al sumar el brillo sobre una imagen uint8.
-        # Esto es porque si por ejemplo un pixel vale 255 y le queremos sumar un brillo de 20 eso sería 275 y se iria del rango de uint8
-#        img_con_brillo = np.clip(self.data.astype(np.int32) + self.brillo, 0, 255).astype(np.uint8) # Luego sumamos el valor de brillo a todos los píxeles.
-                                                                                                    # np.clip limita los valores para que permanezcan dentro del rango válido
-                                                                                                    # de una imagen de 8 bits (0 a 255).
-                                                                                                    # Finalmente volvemos a convertir la imagen a uint8 para visualizarla.
+        Parámetros
+        ----------
+        brillo : int
+            Valor de brillo a sumar. Puede ser positivo o negativo.
+        """
 
-        # Mostramos la imagen utilizando escala de grises.
-#        ax.imshow(img_con_brillo, cmap="gray", interpolation="none") # Interpolation="none" evita que matplotlib suavice los píxeles.
-#        ax.set_title(f"Radiografía — {self.tipo_estudio if self.tipo_estudio else 'sin tipo'}") # Mostramos en el título el tipo de estudio.
-                                                                                                # Si no se definió ninguno, se muestra "sin tipo".
-#       ax.axis("off") # ocultamos los ejes
-#        plt.tight_layout()
-#        plt.show() # Mostramos
+        brillo = int(brillo)
+
+        # Guardamos el brillo en los metadatos
+        self.info.datos["brillo"] = brillo
+
+        # Usamos siempre la imagen original para que el brillo no se acumule
+        img = self.original.astype(np.float64)
+
+        # Normalizamos la imagen al rango 0-255
+        minimo = img.min()
+        maximo = img.max()
+
+        if maximo == minimo:
+            img_normalizada = np.zeros_like(img)
+        else:
+            img_normalizada = (img - minimo) * 255 / (maximo - minimo)
+
+        # Aplicamos el brillo
+        img_con_brillo = img_normalizada + brillo
+
+        # Limitamos al rango válido 0-255
+        img_con_brillo = np.clip(img_con_brillo, 0, 255).astype(np.uint8)
+
+        # Modificamos la imagen actual
+        self.data = img_con_brillo
+
+        # Actualizamos el título
+        self.titulo_actual = f"Radiografía — brillo {brillo}"
+
+        # Registramos en historial
+        self.historial.modificar_historial(f"Brillo ajustado: {brillo}")
+
+        return self
 
 
     def mejorar_contraste(self, factor: float = 1.5):
@@ -267,7 +284,6 @@ class ImagenRadiografia(Imagen):
         # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
         img_recortada = ImagenRadiografia(matriz_recortada, info_nueva)
 
-<<<<<<< HEAD
         # Asignamos un nuevo titulo al nuevo objeto detallando el área del recorte
         img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
 
@@ -276,10 +292,6 @@ class ImagenRadiografia(Imagen):
 
         # Retornamos la nueva instancia de imagen radiografica
         return img_recortada
-=======
-
-
-
 
     def cargar_y_vectorizar_imagenes(self,carpeta, tamano=(128, 128)):
         """Lee todas las radiografías, las redimensiona y las convierte en vectores lineales."""
@@ -391,5 +403,3 @@ class ImagenRadiografia(Imagen):
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.show()
 
-        
->>>>>>> 566cc31000dee0fc2e5124374b5a0d5ea8484ae0

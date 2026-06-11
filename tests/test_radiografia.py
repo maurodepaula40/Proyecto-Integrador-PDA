@@ -277,7 +277,6 @@ from bioimagenes.core.imagen import Imagen
 
 
 # 1. 'objeto_img' YA ES una instancia de ImagenRadiografica gracias a tu método .cargar()
-<<<<<<< HEAD
 # objeto_img = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
 # objeto_img.visualizar()
 # objeto_img.detectar_bordes()
@@ -334,13 +333,13 @@ from bioimagenes.core.imagen import Imagen
 # if __name__ == "__main__":
 #     ejecutar_pruebas()
 
-=======
 # objeto_img = ImagenRadiografica.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
 # objeto_img.visualizar("RX original de torax")
 # objeto_img.detectar_bordes()
 # objeto_img.visualizar("deteccion de bordes con sobel")
 # objeto_img.ver_imgOriginal()
 radiografia = ImagenRadiografica.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
+radiografia.ajustar_brillo(0)
 radiografia.visualizar()
 
 
@@ -354,4 +353,3 @@ radiografia.visualizar()
     
 #     # El método se ejecuta y automáticamente va a leer todo, procesar y abrir el gráfico
 #     ImagenRadiografica.visualizar_cluster(carpeta_dataset, k=3)
->>>>>>> 566cc31000dee0fc2e5124374b5a0d5ea8484ae0
