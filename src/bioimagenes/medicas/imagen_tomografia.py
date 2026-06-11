@@ -142,47 +142,111 @@ class ImagenTomografica(Imagen):
         self.mostrar_corte()
     
     
-    def reconstruir_3d(self, indice_inicio=0, indice_fin=None):
+    def reconstruir_3d(self,indice_inicio=0,indice_fin=None,paso=None,reducir_resolucion=True):
+        """
+        Visualiza cortes tomográficos mediante un slider interactivo.
+
+        Parámetros
+        ----------
+        indice_inicio : int
+            Primer corte a visualizar.
+
+        indice_fin : int o None
+            Último corte a visualizar.
+            Si es None se utiliza el último corte del volumen.
+
+        paso : int o None
+            Salto entre cortes.
+            Si es None se calcula automáticamente.
+
+        reducir_resolucion : bool
+            Si es True reduce la resolución de cada corte
+            para mejorar el rendimiento.
+        """
 
         volumen = self.data
 
+        # Verificar que sea un volumen 3D
+        if volumen.ndim != 3:
+            raise ValueError(
+                "La tomografía debe ser un volumen 3D."
+            )
+
+        # Último corte por defecto
         if indice_fin is None:
             indice_fin = volumen.shape[2] - 1
 
         # Validaciones
-        if indice_inicio < 0 or indice_fin >= volumen.shape[2]:
+        if indice_inicio < 0:
+            raise ValueError("indice_inicio debe ser >= 0")
+
+        if indice_fin >= volumen.shape[2]:
             raise ValueError(
-                f"Los índices deben estar entre 0 y {volumen.shape[2]-1}"
+                f"indice_fin debe ser <= {volumen.shape[2]-1}"
             )
 
         if indice_inicio > indice_fin:
             raise ValueError(
-                "indice_inicio debe ser menor o igual que indice_fin"
+                "indice_inicio debe ser menor o igual a indice_fin"
             )
+
+        # Número de cortes solicitados
+        cantidad_cortes = indice_fin - indice_inicio + 1
+
+        # Ajuste automático del paso
+        if paso is None:
+
+            if cantidad_cortes <= 60:
+                paso = 1
+
+            elif cantidad_cortes <= 150:
+                paso = 3
+
+            elif cantidad_cortes <= 300:
+                paso = 5
+
+            else:
+                paso = 10
+
+        print(f"Mostrando cortes cada {paso} posiciones.")
+
+        indices = list(range(indice_inicio, indice_fin + 1, paso))
 
         frames = []
 
-        for i in range(indice_inicio, indice_fin + 1):
+        for i in indices:
 
-            frame = go.Frame(
-                data=[
-                    go.Surface(
-                        z=np.zeros_like(volumen[:, :, i]),
-                        surfacecolor=volumen[:, :, i],
-                        colorscale="Gray",
-                        showscale=False
-                    )
-                ],
-                name=str(i)
+            corte = volumen[:, :, i]
+
+            # Reducir resolución
+            if reducir_resolucion:
+                corte = corte[::2, ::2]
+
+            frames.append(
+                go.Frame(
+                    data=[
+                        go.Surface(
+                            z=np.zeros_like(corte),
+                            surfacecolor=corte,
+                            colorscale="Gray",
+                            showscale=False
+                        )
+                    ],
+                    name=str(i)
+                )
             )
 
-            frames.append(frame)
+        # Primer corte mostrado
+        corte_inicial = volumen[:, :, indices[0]]
+
+        if reducir_resolucion:
+            corte_inicial = corte_inicial[::2, ::2]
 
         fig = go.Figure(
             data=[
                 go.Surface(
-                    z=np.zeros_like(volumen[:, :, indice_inicio]),
-                    surfacecolor=volumen[:, :, indice_inicio],
+                    z=np.zeros_like(corte_inicial),
+                    surfacecolor=corte_inicial,
                     colorscale="Gray",
                     showscale=False
                 )
@@ -194,33 +258,37 @@ class ImagenTomografica(Imagen):
             "steps": [
                 {
                     "method": "animate",
-                    "label": str(k),
+                    "label": str(i),
                     "args": [
-                        [str(k)],
+                        [str(i)],
                         {
                             "mode": "immediate",
-                            "frame": {"duration": 0, "redraw": True},
-                            "transition": {"duration": 0}
+                            "frame": {
+                                "duration": 0,
+                                "redraw": True
+                            },
+                            "transition": {
+                                "duration": 0
+                            }
                         }
                     ]
                 }
-                for k in range(indice_inicio, indice_fin + 1)
+                for i in indices
             ]
         }]
 
         fig.update_layout(
             title=f"Cortes tomográficos ({indice_inicio}-{indice_fin})",
             sliders=sliders,
+            width=900,
+            height=700,
             scene=dict(
                 xaxis_visible=False,
                 yaxis_visible=False,
                 zaxis_visible=False
-            ),
-            width=900,
-            height=700
+            )
         )
 
-        # Genera un HTML y lo abre automáticamente
         fig.write_html(
             "reconstruccion_tomografia.html",
             auto_open=True
@@ -326,15 +394,15 @@ class ImagenTomografica(Imagen):
 
         return imagen_rgb      
 
-    def mostrar_historial(self):
-        """
-        Imprime en pantalla todos los cambios registrados en el historial
-        de la imagen, numerados y en orden cronológico.
-        """
-        if len(self.info.historial) == 0:
-            print("El historial está vacío.")
-            return
+    # def mostrar_historial(self):
+    #     """
+    #     Imprime en pantalla todos los cambios registrados en el historial
+    #     de la imagen, numerados y en orden cronológico.
+    #     """
+    #     if len(self.info.historial) == 0:
+    #         print("El historial está vacío.")
+    #         return
 
-        print(f"Historial de cambios ({len(self.info.historial)} registros)")
-        for numero, cambio in enumerate(self.info.historial, start=1):
-            print(f"  {numero}. {cambio}")                                                           
+    #     print(f"Historial de cambios ({len(self.info.historial)} registros)")
+    #     for numero, cambio in enumerate(self.info.historial, start=1):
+    #         print(f"  {numero}. {cambio}")                                                           

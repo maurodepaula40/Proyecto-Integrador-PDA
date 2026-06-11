@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.info import Info
 from bioimagenes.filtros.filtro import Filtro
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-class ImagenRadiografica(Imagen):
+class ImagenRadiografia(Imagen):
     """
     Clase heredada de Imagen especializada en radiografías digitales.
 
@@ -112,18 +113,18 @@ class ImagenRadiografica(Imagen):
         """
 
         # Convierto la imagen a float para poder hacer operaciones matemáticas
+        datos = self.data.astype(np.float64)
 
         #Tomamos el gris medio (128) como referencia.
         #Primero restamos 128 para centrar los valores alrededor de 0, luego multiplicamos por el factor de contraste y finalmente
         #volvemos a sumar 128 para regresar al rango normal.
-        matriz_contrastada = (self.data - 128.0) * factor + 128.0
-
-        self.data = Imagen.normalizar(matriz_contrastada)
-
-        self.titulo_actual = f"Imagen RX con mejora de contraste con factor: {factor} "
+        resultado = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
 
         # Registramos en el historial
-        self.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
+        self.info.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
+
+        #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
+        return ImagenRadiografia(resultado, self.tipo_estudio, self.brillo)
     
     def invertir_intensidades(self):
         """
@@ -136,16 +137,15 @@ class ImagenRadiografica(Imagen):
         - las zonas claras pasan a oscuras
         - las zonas oscuras pasan a claras
         """
+
         # Invertimos los niveles de gris
         resultado = 255 - self.data
 
         # Registramos la transformación en el historial
-        self.historial.modificar_historial("Intensidades invertidas")
-
-        self.titulo = f"Imagen RX con las intensidades invertidas"
+        self.info.historial.modificar_historial("Intensidades invertidas")
 
         # Retornamos una nueva imagen radiográfica
-        return resultado
+        return ImagenRadiografia(resultado, tipo_estudio=self.info["tipo_estudio"], brillo=self.info["brillo"])
 
     def ecualizar_intensidades(self):
         """
@@ -180,17 +180,22 @@ class ImagenRadiografica(Imagen):
         ecual_max = ecual.max()
 
         # Aplicamos la fórmula de normalización para redistribuir los valores del array entre 0 y 255.
-        ecual_normalizada = Imagen.normalizar(ecual)
+        ecual_normalizada = ((ecual - ecual_min) * 255) / (ecual_max - ecual_min) # Restamos el mínimo para que la escala comience en 0.
+                                                                                  # Multiplicamos por 255 para llevar los valores al rango típico de una imagen de 8 bits.
+                                                                                  # Dividimos por (ecual_max - ecual_min) para ajustar proporcionalmente toda la escala.
         
+        # Convertimos los resultados a enteros de 8 bits
+        ecual_normalizada = ecual_normalizada.astype(np.uint8)
 
         resultado = ecual_normalizada[self.data] #usa cada valor de self.data como un indice para ecual_normalizada
                                                  #el resultado es una matriz con los valores escualizados para cada uno de los indices
 
         # Registramos la transformación realizada en el historial asociado a la imagen.
-        self.historial.modificar_historial("Intensidades ecualizadas")
+        self.info.historial.modificar_historial("Intensidades ecualizadas")
 
         # Retornamos una nueva instancia de ImagenRadiografia con la imagen ecualizada y conservando los metadatos originales.
-        return resultado
+        return ImagenRadiografia(resultado,tipo_estudio=self.info["tipo_estudio"],brillo=self.info["brillo"])
+
 
     def detectar_bordes(self):
         """
@@ -208,58 +213,60 @@ class ImagenRadiografica(Imagen):
             img_filtrada = np.sqrt(g_x**2 + g_y**2)
 
             # Guardamos el resultado final en 'self.data'
-            self.data = Imagen.normalizar(img_filtrada)
-
-            self.titulo_actual = f"Imagen RX con filtro de deteccion de bordes"
+            self.data = np.clip(img_filtrada, 0, 255).astype(np.uint8)
             
             # Registramos el cambio en el historial.
             self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")
 
         except Exception as e:
             raise RuntimeError(f"Error al ejecutar la detección de bordes por Sobel: {e}") 
-        
+        pass
 
-    def seleccionar_region_interes(self, y_min: int, y_max: int, x_min: int, x_max: int):
+    def seleccionar_region_interes(self, y_min:int, y_max:int, x_min:int, x_max:int):
         """
         Recorta una región de interés específica dentro de la imagen radiográfica.
-        Modifica la imagen actual (in-place) reduciendo su tamaño a la submatriz seleccionada.
 
         Parámetros:
-            - y_min (int): Coordenada vertical superior (inicio de fila).
-            - y_max (int): Coordenada vertical inferior (fin de fila).
-            - x_min (int): Coordenada horizontal izquierda (inicio de columna).
-            - x_max (int): Coordenada horizontal derecha (fin de columna).
+            -y_min (int): Coordenada vertical izquiera (columna izquierda).
+            -y_max (int): Coordenada vertical derecha (columna derecha).
+            -x_min (int): Coordenada horizontal superior (fila superior).
+            -x_max (int): Coordenada horizontal final (fila inferior).
+
+        Retoran:
+            imagen_radiografia: Nueva instancia que almacena la submatriz recortada.
 
         Raises:
             ValueError: Si las coordenadas son negativas, inconsistentes (mínimo mayor al máximo) 
-                        o si desbordan las dimensiones de la imagen original.
+                o si desbordan las dimensiones de la imagen original.
         """
-        #Obtenemos las dimensiones reales (alto = filas, ancho = columnas)
-        alto, ancho = self.data.shape[:2]
-
-        # Validamos que las coordenadas no sean negativas
-        if y_min < 0 or y_max < 0 or x_min < 0 or x_max < 0:
-            raise ValueError("Error de rango: Las coordenadas no pueden ser valores negativos.")
+        # Obtenemos las dimensiones reales (alto y ancho) de la matriz de la radiografía
+        alto_real, ancho_real = self.data.shape[:2]
 
         # Validamos que los límites mínimos no superen o igualen a los límites máximos
-        if y_min >= y_max or x_min >= x_max:
-            raise ValueError(f"Error de rango: Los valores mínimos [Y: {y_min}, X: {x_min}] "
-                             f"deben ser menores que los máximos [Y: {y_max}, X: {x_max}].")
+        if x_min >= x_max or y_min >= y_max:
+            raise ValueError(f"Error de rango: Los valores mínimos [{x_min}, {y_min}] "
+                            f"deben ser menores que los máximos [{x_max}, {y_max}].")
         
-        # Validamos que ninguna coordenada desborde el tamaño real de la matriz
-        if y_max > alto or x_max > ancho:
+        # Validamos que ninguna coordenada este fuera de rango del tamaño de la matriz
+        if x_max > ancho_real or y_max > alto_real:
             raise ValueError(f"Error de rango: Las coordenadas exceden los límites de la radiografía "
-                             f"(Tamaño actual de la matriz: {ancho}x{alto}).")
+                            f"(Tamaño actual: {ancho_real}x{alto_real}).")
         
-        # Modificamos in place, extraemos la submatriz y pisamos directamente self.data
-        # En NumPy el orden de indexación siempre es [filas(Y), columnas(X)]
-        self.data = self.data[y_min:y_max, x_min:x_max]
+        # Extraer la submatriz utilizando slicing
+        matriz_recortada = self.data[y_min:y_max, x_min:x_max]
 
-        # Asignamos el nuevo título detallando el área del recorte al objeto actual
-        self.titulo_actual = f"Recorte [X: {x_min}-{x_max}, Y: {y_min}-{y_max}]"
+        info_nueva = self._info
+        # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
+        #info_nueva["modificado"] = True 
 
-        # Registramos la acción de recorte en el historial de este mismo objeto
-        self.historial.modificar_historial(f"Se recortó la imagen a la región de interés.")
+        # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
+        img_recortada = ImagenRadiografia(matriz_recortada, info_nueva)
 
-    def visualizar_cluster(self):
-        pass
+        # Asignamos un nuevo titulo al nuevo objeto detallando el área del recorte
+        img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
+
+        # Registramos la acción de recorte en el historial de la imagen original
+        self.historial.modificar_historial(f"Se recortó la imagen.")
+
+        # Retornamos la nueva instancia de imagen radiografica
+        return img_recortada
