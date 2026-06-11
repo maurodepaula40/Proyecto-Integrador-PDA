@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.info import Info
 from bioimagenes.filtros.filtro import Filtro
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 class ImagenRadiografia(Imagen):
     """
@@ -269,6 +270,3 @@ class ImagenRadiografia(Imagen):
 
         # Retornamos la nueva instancia de imagen radiografica
         return img_recortada
-
-    def visualizar_cluster(self):
-        pass

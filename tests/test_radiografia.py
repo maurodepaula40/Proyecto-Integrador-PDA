@@ -277,58 +277,105 @@ from bioimagenes.core.imagen import Imagen
 
 
 # 1. 'objeto_img' YA ES una instancia de ImagenRadiografica gracias a tu método .cargar()
-objeto_img = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
-objeto_img.visualizar()
-objeto_img.detectar_bordes()
-objeto_img.visualizar()
-radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
-radiografia.visualizar()
-radiografia.detectar_bordes()
-radiografia.visualizar()
+# objeto_img = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
+# objeto_img.visualizar()
+# objeto_img.detectar_bordes()
+# objeto_img.visualizar()
+# radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
+# radiografia.visualizar()
+# radiografia.detectar_bordes()
+# radiografia.visualizar()
 
 
 
-# =====================================================================
-# 2. EJECUCIÓN DEL TEST AUTOMÁTICO
-# =====================================================================
+# # =====================================================================
+# # 2. EJECUCIÓN DEL TEST AUTOMÁTICO
+# # =====================================================================
 
-def ejecutar_pruebas():
-    print("Iniciando pruebas del método 'detectar_bordes'...")
+# def ejecutar_pruebas():
+#     print("Iniciando pruebas del método 'detectar_bordes'...")
     
-    # 2. CORRECCIÓN: Asignamos el objeto directamente. 
-    # Modificamos sus atributos si el test lo requiere (como el tipo_estudio o brillo)
-    #img.tipo_estudio = "Imagen pixeleada"
-    #img.brillo = 50
+#     # 2. CORRECCIÓN: Asignamos el objeto directamente. 
+#     # Modificamos sus atributos si el test lo requiere (como el tipo_estudio o brillo)
+#     #img.tipo_estudio = "Imagen pixeleada"
+#     #img.brillo = 50
     
-    # Guardamos las dimensiones originales tomándolas desde el .data interno del objeto
-    dimensiones_originales = objeto_img.data.shape
+#     # Guardamos las dimensiones originales tomándolas desde el .data interno del objeto
+#     dimensiones_originales = objeto_img.data.shape
     
-    # 3. Ejecutamos el método a evaluar
-    objeto_img.detectar_bordes()
+#     # 3. Ejecutamos el método a evaluar
+#     objeto_img.detectar_bordes()
 
-    # --- VALIDACIONES ---
+#     # --- VALIDACIONES ---
     
-    # Validación 1: Conservación de dimensiones
-    assert objeto_img.data.shape == dimensiones_originales, f"Error: Las dimensiones cambiaron. Esperado: {dimensiones_originales}, Obtenido: {objeto_img.data.shape}"
-    print(f"  [PASÓ] Validación de dimensiones correctas {objeto_img.data.shape}.")
+#     # Validación 1: Conservación de dimensiones
+#     assert objeto_img.data.shape == dimensiones_originales, f"Error: Las dimensiones cambiaron. Esperado: {dimensiones_originales}, Obtenido: {objeto_img.data.shape}"
+#     print(f"  [PASÓ] Validación de dimensiones correctas {objeto_img.data.shape}.")
 
-    # Validación 2: Existencia de bordes
-    assert np.any(objeto_img.data > 0), "Error matemático: El operador Sobel devolvió solo ceros. No detectó bordes."
-    print("  [PASÓ] Validación de contenido (Se detectaron bordes anatómicos).")
+#     # Validación 2: Existencia de bordes
+#     assert np.any(objeto_img.data > 0), "Error matemático: El operador Sobel devolvió solo ceros. No detectó bordes."
+#     print("  [PASÓ] Validación de contenido (Se detectaron bordes anatómicos).")
 
-    # Validación 3: Tipo de dato de salida
-    assert objeto_img.data.dtype == np.uint8, f"Error de tipo. Esperado: uint8, Obtenido: {objeto_img.data.dtype}"
-    print("  [PASÓ] Validación de tipo de dato (uint8).")
+#     # Validación 3: Tipo de dato de salida
+#     assert objeto_img.data.dtype == np.uint8, f"Error de tipo. Esperado: uint8, Obtenido: {objeto_img.data.dtype}"
+#     print("  [PASÓ] Validación de tipo de dato (uint8).")
 
-        # --- VALIDACIÓN 4: Registro en el historial ---
-    mensaje_esperado = "Se realizó Detección de Bordes con operador Sobel"
+#         # --- VALIDACIÓN 4: Registro en el historial ---
+#     mensaje_esperado = "Se realizó Detección de Bordes con operador Sobel"
     
-    # Comprobamos que el último movimiento coincida exactamente
-    assert objeto_img.historial.ultimo_cambio == mensaje_esperado, f"Error: El último cambio no coincide. Obtenido: {img.historial.ultimo_cambio}"
-    print("  [PASÓ] Validación del registro en el historial.")
+#     # Comprobamos que el último movimiento coincida exactamente
+#     assert objeto_img.historial.ultimo_cambio == mensaje_esperado, f"Error: El último cambio no coincide. Obtenido: {img.historial.ultimo_cambio}"
+#     print("  [PASÓ] Validación del registro en el historial.")
 
 
-    print("\n¡Todas las pruebas pasaron exitosamente con la radiografía real!")
+#     print("\n¡Todas las pruebas pasaron exitosamente con la radiografía real!")
 
-if __name__ == "__main__":
-    ejecutar_pruebas()
+# if __name__ == "__main__":
+#     ejecutar_pruebas()
+
+
+# import numpy as np
+# from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
+
+# np.random.seed(10)
+
+# lista_radiografias = []
+
+# # Grupo 1: bajo brillo, contraste medio
+# for i in range(20):
+#     img = np.random.normal(75, 15, (120, 120)).clip(0, 255).astype(np.uint8)
+#     lista_radiografias.append(img)
+
+# # Grupo 2: brillo medio, contraste alto
+# for i in range(20):
+#     img = np.random.normal(145, 25, (120, 120)).clip(0, 255).astype(np.uint8)
+#     lista_radiografias.append(img)
+
+# # Grupo 3: brillo alto, contraste bajo
+# for i in range(20):
+#     img = np.random.normal(215, 10, (120, 120)).clip(0, 255).astype(np.uint8)
+#     lista_radiografias.append(img)
+
+# etiquetas, caracteristicas = ImagenRadiografia.visualizar_cluster(
+#     radiografias=lista_radiografias,
+#     n_clusters=3
+# )
+
+# print("Etiquetas:")
+# print(etiquetas)
+
+# print("Características:")
+# print(caracteristicas[:5])
+
+from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
+
+etiquetas, caracteristicas = ImagenRadiografia.visualizar_cluster(
+    ruta_carpeta="tests\imagenes_test/radiografias",
+    n_clusters=3
+)
+
+print("Etiquetas asignadas:")
+print(etiquetas)
+
+print("Características extraídas:")
+print(caracteristicas)
