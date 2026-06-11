@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
-from bioimagenes.medicas.imagen_radiografia import ImagenRadiografica
+from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
 from bioimagenes.core.imagen import Imagen
 
 
@@ -338,7 +338,7 @@ from bioimagenes.core.imagen import Imagen
 # objeto_img.detectar_bordes()
 # objeto_img.visualizar("deteccion de bordes con sobel")
 # objeto_img.ver_imgOriginal()
-radiografia = ImagenRadiografica.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
+radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
 radiografia.ajustar_brillo(0)
 radiografia.visualizar()
 

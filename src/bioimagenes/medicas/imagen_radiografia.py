@@ -10,7 +10,7 @@ from bioimagenes.core.info import Info
 from bioimagenes.filtros.filtro import Filtro
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-class ImagenRadiografica(Imagen):
+class ImagenRadiografia(Imagen):
     """
     Clase heredada de Imagen especializada en radiografías digitales.
 
