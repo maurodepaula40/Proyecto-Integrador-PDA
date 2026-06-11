@@ -8,7 +8,6 @@ from bioimagenes.filtros.filtro import Filtro
 import numpy as np
 import matplotlib.pyplot as plt
 from bioimagenes.medicas.imagen_radiografia import ImagenRadiografica
-import pydicom
 
 
 #Prueba con imagen en escala de grises

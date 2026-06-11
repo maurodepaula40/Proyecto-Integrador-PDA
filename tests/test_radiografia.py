@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
-from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
+from bioimagenes.medicas.imagen_radiografia import ImagenRadiografica
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.historial import Historial
 
@@ -278,61 +278,22 @@ from bioimagenes.core.historial import Historial
 
 
 # 1. 'objeto_img' YA ES una instancia de ImagenRadiografica gracias a tu método .cargar()
-objeto_img = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
-objeto_img.visualizar("RX original de torax")
-objeto_img.detectar_bordes()
-objeto_img.visualizar("deteccion de bordes con sobel")
-objeto_img.ver_imgOriginal()
-radiografia = ImagenRadiografia.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
-radiografia.visualizar("rx del pecho ")
-radiografia.detectar_bordes()
-radiografia.visualizar("detecicon de bordes sobel")
-radiografia.ver_imgOriginal()
+# objeto_img = ImagenRadiografica.cargar("tests/imagenes_test/radiografias/216840111366964013307756408102012093111819763_01-114-013.png")
+# objeto_img.visualizar("RX original de torax")
+# objeto_img.detectar_bordes()
+# objeto_img.visualizar("deteccion de bordes con sobel")
+# objeto_img.ver_imgOriginal()
+radiografia = ImagenRadiografica.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
+radiografia.visualizar()
 
 
 
-
-# =====================================================================
-# 2. EJECUCIÓN DEL TEST AUTOMÁTICO
-# =====================================================================
-
-def ejecutar_pruebas():
-    print("Iniciando pruebas del método 'detectar_bordes'...")
+# ==========================================
+# EJECUCIÓN PRINCIPAL
+# ==========================================
+# if __name__ == "__main__":
+#     # ➡️ REEMPLAZA ESTO por el nombre de tu carpeta real (ej: "mis_radiografias" o "dataset")
+#    
     
-    # 2. CORRECCIÓN: Asignamos el objeto directamente. 
-    # Modificamos sus atributos si el test lo requiere (como el tipo_estudio o brillo)
-    #img.tipo_estudio = "Imagen pixeleada"
-    #img.brillo = 50
-    
-    # Guardamos las dimensiones originales tomándolas desde el .data interno del objeto
-    dimensiones_originales = objeto_img.data.shape
-    
-    # 3. Ejecutamos el método a evaluar
-    objeto_img.detectar_bordes()
-
-    # --- VALIDACIONES ---
-    
-    # Validación 1: Conservación de dimensiones
-    assert objeto_img.data.shape == dimensiones_originales, f"Error: Las dimensiones cambiaron. Esperado: {dimensiones_originales}, Obtenido: {objeto_img.data.shape}"
-    print(f"  [PASÓ] Validación de dimensiones correctas {objeto_img.data.shape}.")
-
-    # Validación 2: Existencia de bordes
-    assert np.any(objeto_img.data > 0), "Error matemático: El operador Sobel devolvió solo ceros. No detectó bordes."
-    print("  [PASÓ] Validación de contenido (Se detectaron bordes anatómicos).")
-
-    # Validación 3: Tipo de dato de salida
-    assert objeto_img.data.dtype == np.uint8, f"Error de tipo. Esperado: uint8, Obtenido: {objeto_img.data.dtype}"
-    print("  [PASÓ] Validación de tipo de dato (uint8).")
-
-        # --- VALIDACIÓN 4: Registro en el historial ---
-    mensaje_esperado = "Se realizó Detección de Bordes con operador Sobel"
-    
-    # Comprobamos que el último movimiento coincida exactamente
-    assert objeto_img.historial.ultimo_cambio == mensaje_esperado, f"Error: El último cambio no coincide. Obtenido: {img.historial.ultimo_cambio}"
-    print("  [PASÓ] Validación del registro en el historial.")
-
-
-    print("\n¡Todas las pruebas pasaron exitosamente con la radiografía real!")
-
-if __name__ == "__main__":
-    ejecutar_pruebas()
+#     # El método se ejecuta y automáticamente va a leer todo, procesar y abrir el gráfico
+#     ImagenRadiografica.visualizar_cluster(carpeta_dataset, k=3)
