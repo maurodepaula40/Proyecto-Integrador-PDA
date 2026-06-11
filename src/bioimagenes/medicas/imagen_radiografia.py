@@ -1,5 +1,10 @@
+import os
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.core.info import Info
 from bioimagenes.filtros.filtro import Filtro
@@ -262,6 +267,7 @@ class ImagenRadiografia(Imagen):
         # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
         img_recortada = ImagenRadiografia(matriz_recortada, info_nueva)
 
+<<<<<<< HEAD
         # Asignamos un nuevo titulo al nuevo objeto detallando el área del recorte
         img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
 
@@ -270,3 +276,120 @@ class ImagenRadiografia(Imagen):
 
         # Retornamos la nueva instancia de imagen radiografica
         return img_recortada
+=======
+
+
+
+
+    def cargar_y_vectorizar_imagenes(self,carpeta, tamano=(128, 128)):
+        """Lee todas las radiografías, las redimensiona y las convierte en vectores lineales."""
+        vectores = []
+        imagenes_originales = []
+        nombres = []
+        
+        # os.listdir ya devuelve una lista con todos los nombres de los archivos
+        archivos = os.listdir(carpeta)
+        
+        for archivo in archivos:
+            ruta = os.path.join(carpeta, archivo)
+            objeto_img = Imagen.cargar(ruta=ruta)
+            if objeto_img is not None:
+                # Guardamos una versión legible para el "hover"
+                imagenes_originales.append(objeto_img)
+                nombres.append(archivo)
+                
+                # Redimensionar para que todas tengan la misma cantidad de píxeles
+                img_redimensionada = cv2.resize(objeto_img.data, tamano)
+                # Aplanar la imagen completa a un vector de 1 fila
+                vectores.append(img_redimensionada.flatten())
+                
+        return np.array(vectores), imagenes_originales, nombres
+
+
+    def reducir_dimensiones(self,vectores_imagenes):
+        """Reduce los píxeles a solo 2 coordenadas (X, Y) usando PCA."""
+        pca = PCA(n_components=2, random_state=42)
+        puntos_2d = pca.fit_transform(vectores_imagenes)
+        return puntos_2d
+
+
+    # Metodo auxiliar que 
+    def agrupar_con_kmeans(self,puntos_2d, k=3):
+        """Aplica K-means sobre los puntos bidimensionales."""
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
+        etiquetas = kmeans.fit_predict(puntos_2d)
+        return etiquetas
+
+    # Método  
+    def visualizar_cluster(self,carpeta_radiografias, k=3):
+        """
+        Método principal que agrupa las radiografías completas en un plano 2D
+        y genera la gráfica interactiva con ventana emergente al pasar el cursor.
+        """
+        # Procesamos el set de datos completo
+        vectores, imagenes_reales, nombres = self.cargar_y_vectorizar_imagenes(carpeta_radiografias)
+        
+        if len(vectores) == 0:
+            print("No se encontraron imágenes válidas.")
+            return
+            
+        # Obtenemos coordenadas X (Feature 1) e Y (Feature 2)
+        puntos_2d = self.reducir_dimensiones(vectores)
+        
+        # Clasificamos a qué grupo pertenece a cada radiografía
+        etiquetas = self.agrupar_con_kmeans(puntos_2d, k=k)
+        
+        # Creamos la gráfica interactiva de Matplotlib
+        fig, ax = plt.subplots(figsize=(10, 7))
+        ax.set_title("Image Clusters (Radiografías)", fontsize=14, fontweight='bold')
+        ax.set_xlabel("Feature 1")
+        ax.set_ylabel("Feature 2")
+        
+        # Dibujamos los puntos del scatter plot usando colores según su clúster
+        colores_mapa = ["red", "blue", "green", "purple", "orange"]
+        colores_puntos = [colores_mapa[e % len(colores_mapa)] for e in etiquetas]
+        
+        scatter = ax.scatter(puntos_2d[:, 0], puntos_2d[:, 1], c=colores_puntos, s=100, edgecolors='black', alpha=0.8)
+        
+        # Creamos la ventana oculta por defecto para la radiografía
+        imagen_vacia = np.zeros((50, 50), dtype=np.uint8) # Cuadro negro temporal
+        imagen_flotante = OffsetImage(imagen_vacia, zoom=0.5, cmap='gray')
+        caja_anotacion = AnnotationBbox(imagen_flotante, (0, 0), xybox=(30, 30),
+                                        xycoords='data', boxcoords="offset points",
+                                        arrowprops=dict(arrowstyle="->"), bboxprops=dict(boxstyle="round", fc="w"))
+        caja_anotacion.set_visible(False)
+        ax.add_artist(caja_anotacion)
+        
+        # --- EVENTO HOVER (Detectar el movimiento del cursor) ---
+        def hover(event):
+            vis = caja_anotacion.get_visible()
+            if event.inaxes == ax:
+                # Comprobar si el cursor está sobre algún punto del scatter plot
+                cont, ind = scatter.contains(event)
+                if cont:
+                    # Obtener el índice de la radiografía seleccionada
+                    idx = ind["ind"][0]
+                    pos = puntos_2d[idx]
+                    
+                    # Actualizar la posición de la ventana flotante
+                    caja_anotacion.xy = pos
+                    
+                    # Cambiar la imagen del cuadro por la radiografía real correspondiente
+                    # Redimensionamos un poco la ventana emergente para que no tape todo el gráfico
+                    img_popup = cv2.resize(imagenes_reales[idx].data, (150, 150))
+                    imagen_flotante.set_data(img_popup)
+                    
+                    caja_anotacion.set_visible(True)
+                    fig.canvas.draw_idle()
+                else:
+                    if vis:
+                        caja_anotacion.set_visible(False)
+                        fig.canvas.draw_idle()
+
+        # Conectar la función hover a la ventana de Matplotlib
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.show()
+
+        
+>>>>>>> 566cc31000dee0fc2e5124374b5a0d5ea8484ae0
