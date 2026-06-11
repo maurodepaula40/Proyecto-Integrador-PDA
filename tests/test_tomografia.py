@@ -316,9 +316,9 @@ RUTA_TOMOGRAFIA = "docs/AC421363f (1).nii"
 # tomo.mostrar_historial()
 
 
-img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
+# img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
-#tomo = ImagenTomografica(RUTA_TOMOGRAFIA)
+# tomo = ImagenTomografica(RUTA_TOMOGRAFIA)
 
 
-img.reconstruir_3d(200,300)
+# img.reconstruir_3d(200,300)
