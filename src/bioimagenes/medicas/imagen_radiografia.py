@@ -296,7 +296,7 @@ class ImagenRadiografia(Imagen):
         # Retornamos la nueva instancia de imagen radiografica
         return img_recortada
 
-    def cargar_y_vectorizar_imagenes(self,carpeta, tamano=(128, 128)):
+    def _cargar_y_vectorizar_imagenes(self,carpeta, tamano=(128, 128)):
         """Lee todas las radiografías, las redimensiona y las convierte en vectores lineales."""
         vectores = []
         imagenes_originales = []
@@ -321,7 +321,7 @@ class ImagenRadiografia(Imagen):
         return np.array(vectores), imagenes_originales, nombres
 
 
-    def reducir_dimensiones(self,vectores_imagenes):
+    def _reducir_dimensiones(self,vectores_imagenes):
         """Reduce los píxeles a solo 2 coordenadas (X, Y) usando PCA."""
         pca = PCA(n_components=2, random_state=42)
         puntos_2d = pca.fit_transform(vectores_imagenes)
@@ -329,7 +329,7 @@ class ImagenRadiografia(Imagen):
 
 
     # Metodo auxiliar que 
-    def agrupar_con_kmeans(self,puntos_2d, k=3):
+    def _agrupar_con_kmeans(self,puntos_2d, k=3):
         """Aplica K-means sobre los puntos bidimensionales."""
         kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
         etiquetas = kmeans.fit_predict(puntos_2d)
