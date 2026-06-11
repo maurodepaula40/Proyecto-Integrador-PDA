@@ -70,7 +70,7 @@ class ImagenRadiografia(Imagen):
     @property
     def region_interes(self):
         """Retorna la región de interés actual o None si no fue definida."""
-        return self.region_interes
+        return self._region_interes
 
     def ajustar_brillo(self, brillo: int):
         """
@@ -141,12 +141,15 @@ class ImagenRadiografia(Imagen):
         #Primero restamos 128 para centrar los valores alrededor de 0, luego multiplicamos por el factor de contraste y finalmente
         #volvemos a sumar 128 para regresar al rango normal.
         resultado = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
+        
+        # Actualizamos el título
+        self.titulo_actual = f"RX con contraste ajustado ({factor})"
 
         # Registramos en el historial
         self.info.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
-
+        
         #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
-        return ImagenRadiografia(resultado, self.tipo_estudio, self.brillo)
+        return resultado
     
     def invertir_intensidades(self):
         """
@@ -277,7 +280,7 @@ class ImagenRadiografia(Imagen):
         # Extraer la submatriz utilizando slicing
         matriz_recortada = self.data[y_min:y_max, x_min:x_max]
 
-        info_nueva = self._info
+        info_nueva = self.info
         # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
         #info_nueva["modificado"] = True 
 
