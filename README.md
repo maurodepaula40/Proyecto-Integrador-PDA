@@ -582,7 +582,7 @@ Instalar las dependencias:
 pip install numpy matplotlib opencv-python pydicom nibabel Pillow scipy plotly scikit-learn pytest
 ```
 
-Si el proyecto tiene un archivo `pyproject.toml`, `setup.py` o configuración equivalente, también puede instalarse en modo editable:
+El proyecto tiene un archivo `pyproject.toml`, por ende también puede instalarse en modo editable:
 
 ```bash
 pip install -e .
