@@ -6,20 +6,25 @@ from scipy.signal import convolve2d
 class Filtro:
     """"
     Clase que permite realizar operaciones sobre la imagen
-
-    Paramentros:
-        -tipo (str): indica el tipo de filtro (ej: suavizado, sobel, laplaciano, etc).
-        -tamaño (int): tamaño del kernel. Por defecto es 3
-    
     """
 
     def __init__(self, nombre:str, tamaño:int=3):
+        """
+        Inicializa una nueva instancia de la clase de Filtro
 
-       
+        Parámetros:
+            -nombre (str): El nombre del filtro (ej. 'sobel', 'blur'). 
+        
+            -tamaño (int, opcional): El tamaño de la matriz del kernel (debe ser impar).
+                                    Por defecto es 3.
+        """
         self.tipo = nombre.lower()
         self.tamaño = tamaño
-        self.kernel = self.obtener_kernel()
-
+        self.__kernel = self.obtener_kernel()
+    
+    @property
+    def kernel(self):
+        return self.__kernel
     
     def __str__(self):
         """
@@ -45,7 +50,7 @@ class Filtro:
         Si necesita procesar imágenes en color, considere adaptarlo para procesar cada canal por separado.
 
         Parámetro:
-            - objeto_imagen: objeto o instancia de la clase Imagen con datos 2D
+            - objeto_imagen: objeto de la clase Imagen con datos 2D
 
         Retorna:
             - Un array de numpy de la imagen procesada en formato uint8 (valores entre 0 y 255)
@@ -74,9 +79,8 @@ class Filtro:
             array_filtrado = np.abs(array_filtrado)
 
         # escalamos la imagen a 0 y 255
-        array_convolucionado = Imagen.normalizar(array_filtrado)
+        self.data = Imagen.normalizar(array_filtrado)
 
-        return array_convolucionado
 
     def aplicar(self, imagen:object):
         """

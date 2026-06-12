@@ -39,8 +39,8 @@ class Historial():
         Agrega un nuevo cambio al historial.
 
         Parámetros:
-        cambio : str
-        Descripción del cambio realizado (ej: "Filtro aplicado")
+            -cambio : str
+                Descripción del cambio realizado (ej: "Filtro aplicado")
         
         - Toma el cambio recibido
         - Lo agrega al final de la lista
