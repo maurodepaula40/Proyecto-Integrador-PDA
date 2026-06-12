@@ -64,7 +64,6 @@ class ImagenTomografica(Imagen):
         if info is not None:
             self.info = info
 
-    
     def obtener_corte(self, indice:int):
         """ Devuelve un corte (slice) específico del volumen.
         

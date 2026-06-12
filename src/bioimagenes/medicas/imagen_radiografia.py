@@ -140,8 +140,10 @@ class ImagenRadiografia(Imagen):
         #Tomamos el gris medio (128) como referencia.
         #Primero restamos 128 para centrar los valores alrededor de 0, luego multiplicamos por el factor de contraste y finalmente
         #volvemos a sumar 128 para regresar al rango normal.
-        resultado = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
+        rx_contraste = np.clip((datos - 128) * factor + 128, 0, 255).astype(np.uint8)
         
+        self.data = rx_contraste
+
         # Actualizamos el título
         self.titulo_actual = f"RX con contraste ajustado ({factor})"
 
@@ -149,7 +151,7 @@ class ImagenRadiografia(Imagen):
         self.info.historial.modificar_historial(f"Contraste mejorado: factor {factor}")
         
         #Retorna una imagen (instancia de la clase, no la original) con el contraste modificado
-        return resultado
+        return self
     
     def invertir_intensidades(self):
         """
@@ -166,11 +168,13 @@ class ImagenRadiografia(Imagen):
         # Invertimos los niveles de gris
         resultado = 255 - self.data
 
+        self.titulo_actual = "RX con intensidades invertidas"
+
         # Registramos la transformación en el historial
         self.info.historial.modificar_historial("Intensidades invertidas")
 
         # Retornamos una nueva imagen radiográfica
-        return ImagenRadiografia(resultado, tipo_estudio=self.info["tipo_estudio"], brillo=self.info["brillo"])
+        return resultado
 
     def ecualizar_intensidades(self):
         """
@@ -215,12 +219,13 @@ class ImagenRadiografia(Imagen):
         resultado = ecual_normalizada[self.data] #usa cada valor de self.data como un indice para ecual_normalizada
                                                  #el resultado es una matriz con los valores escualizados para cada uno de los indices
 
+        # Actualizamos el título
+        self.titulo_actual = "RX con intensidades ecualizadas"
         # Registramos la transformación realizada en el historial asociado a la imagen.
         self.info.historial.modificar_historial("Intensidades ecualizadas")
 
-        # Retornamos una nueva instancia de ImagenRadiografia con la imagen ecualizada y conservando los metadatos originales.
-        return ImagenRadiografia(resultado,tipo_estudio=self.info["tipo_estudio"],brillo=self.info["brillo"])
-
+        # Retornamos la matriz con la imagen ecualizada
+        return resultado
 
     def detectar_bordes(self):
         """
@@ -240,6 +245,8 @@ class ImagenRadiografia(Imagen):
             # Guardamos el resultado final en 'self.data'
             self.data = np.clip(img_filtrada, 0, 255).astype(np.uint8)
             
+            self.titulo_actual = "RX con detección de bordes"
+
             # Registramos el cambio en el historial.
             self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")
 
@@ -257,7 +264,7 @@ class ImagenRadiografia(Imagen):
             -x_min (int): Coordenada horizontal superior (fila superior).
             -x_max (int): Coordenada horizontal final (fila inferior).
 
-        Retoran:
+        Retorna:
             imagen_radiografia: Nueva instancia que almacena la submatriz recortada.
 
         Raises:

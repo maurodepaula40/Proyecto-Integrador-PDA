@@ -144,7 +144,6 @@ assert rx_rango_alto.data.max() <= 255
 
 print("OK - El brillo funciona con imágenes fuera del rango 0-255.")
 
-
 # ------------------------------------------------------------
 # TEST 7 - Mejorar contraste
 # ------------------------------------------------------------
@@ -158,16 +157,15 @@ matriz_contraste = np.array([
 
 rx_contraste = ImagenRadiografia(matriz_contraste, tipo_estudio="abdomen")
 
-rx_contraste_mejorada = rx_contraste.mejorar_contraste(factor=1.5)
+resultado_contraste = rx_contraste.mejorar_contraste(factor=1.5)
 
-assert isinstance(rx_contraste_mejorada, np.ndarray)
-assert rx_contraste_mejorada.data.shape == rx_contraste.data.shape
-assert rx_contraste_mejorada.data.dtype == np.uint8
-assert rx_contraste_mejorada.data.min() >= 0
-assert rx_contraste_mejorada.data.max() <= 255
+assert isinstance(resultado_contraste, np.ndarray)
+assert resultado_contraste.shape == rx_contraste.data.shape
+assert resultado_contraste.dtype == np.uint8
+assert resultado_contraste.min() >= 0
+assert resultado_contraste.max() <= 255
 
 print("OK - El contraste se mejoró correctamente.")
-
 
 # ------------------------------------------------------------
 # TEST 8 - Invertir intensidades
