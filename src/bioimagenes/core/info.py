@@ -38,16 +38,34 @@ class Info:
 
 
      def __init__(self, datos:dict = None, historial: Historial= None): 
-        """Ver documentación de la clase."""
+        """
+        Inicializa una instancia de la clase Info.
+        Parámetros
+        ---------- 
+        datos : dict 
+            Diccionario con los metadatos iniciales de la imagen. 
+            Ejemplo: {"dimensiones": (100,100), "brillo": 120} 
         
-        if datos is not None and not isinstance(datos, dict): # si nos pasan algo que no es un diccionario → error 
+        historial : Historial 
+            Instancia de la clase Historial asociada a la imagen. 
+            Si no se proporciona, se crea una nueva. 
+        
+        Retorna ------- None 
+        """
+        
+        # si nos pasan algo que no es un diccionario → error 
+        if datos is not None and not isinstance(datos, dict): 
             raise TypeError(f"'datos' debe ser un diccionario, se recibió {type(datos).__name__}.")
         
-        if historial is not None and not isinstance(historial, Historial): #si el dato pasado no es una instancia de Historial → error
+        #si el dato pasado no es una instancia de Historial → error
+        if historial is not None and not isinstance(historial, Historial): 
             raise TypeError(f"'historial' debe ser una instancia de Historial, se recibió {type(historial).__name__}.")
         
         # Si nos pasan un historial lo usamos, si no, creamos uno nuevo vacío
-        self.historial:Historial = historial if historial is not None else Historial()
+        if historial is not None:
+            self.historial = historial
+        else:
+            self.historial = Historial()
 
         # Si nos pasan un diccionario lo usamos, si no, creamos uno con valores por defecto
         if datos is not None:
@@ -86,7 +104,8 @@ class Info:
         - True si la clave existe en los metadatos, False en caso contrario.
         - No modifica el estado del objeto.
         """
-        if not isinstance(key, str): #si la key no es un string → error
+        #si la key no es un string → error
+        if not isinstance(key, str): 
             raise TypeError(f"La clave debe ser un string, se recibió {type(key).__name__}.")
         return key in self.datos
      
@@ -106,11 +125,12 @@ class Info:
         -------
         El valor asociado a la clave sin modificar el estado del objeto
         """
-
-        if key not in self.datos:  #si la clave no existe → error
+        #si la clave no existe → error
+        if key not in self.datos:  
             raise KeyError(f"'{key}' no es un metadato válido de Info.")
         
-        return self.datos[key] #si existe retorna el dato solicitado
+        #si existe retorna el dato solicitado
+        return self.datos[key] 
      
      def cantidad_voxel(self):
         """

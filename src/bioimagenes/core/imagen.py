@@ -25,12 +25,13 @@ class Imagen:
                 Puede ser 2D (escala de grises) o 3D (RGB).
             - info: recibe un objeto Info que contiene los metadatos asociados a la imagen.
                  Si no se proporciona, se genera uno por defecto.
+        
         Errores:
             - ValueError si data no tiene datos, si data no es de 2 o 3 dimensiones y si es una imagen RGB que no tiene 3 canales
             - TypeError si data no es un np.ndarray
         """
        
-        #Comprobamos de que data sea valido
+        # Comprobamos de que data sea valido
         if data is None:
             raise ValueError ("La imagen no tiene datos (data es None)")
     
@@ -166,7 +167,7 @@ class Imagen:
         
     def _configurar_barra_color(self, im, fig, ax, img: np.ndarray, titulo: str):
         """
-        Método auxiliar para renderizar la barra de color.
+        Método privado que se utiliza para renderizar la barra de color en el metodo visualizar().
         """
         # Recuperamos las variables térmicas del metodo convertir_a_temperatura de la clase ImagenTermografica
         t_min = getattr(self, "temp_min_calibrada", None)
@@ -196,7 +197,6 @@ class Imagen:
                 cbar.set_ticks(posiciones)
                 cbar.set_ticklabels(etiquetas)
                 cbar.set_label("Temperatura", rotation=270, labelpad=15)
-                return  # Terminamos con éxito el flujo RGB
                 
             except Exception:
                 pass  # Si algo falla de forma extrema, continúa abajo por seguridad
@@ -213,8 +213,9 @@ class Imagen:
     
     def _configurar_limites_visuales(self, img: np.ndarray, vlims: tuple = None) -> tuple:
         """
-        Método auxiliar para determinar los límites numéricos (vmin, vmax) 
-        del contraste visual según el tipo de datos y parámetros.
+        Método privado para determinar los límites numéricos (vmin, vmax) 
+        del contraste visual según el tipo de datos y parámetros,
+        que tambien se utiliza en el metodo visualizar().
         """
         if vlims is not None:
             return vlims
@@ -236,14 +237,14 @@ class Imagen:
         else:
             img = data
         
-
+        # Ponemos un titulo a la imagen
         titulo_a_mostrar = getattr(self, "titulo_actual", "Visualización de Imagen Médica") if titulo is None else titulo
 
         # Llamos al metodo configurar limites visuales
         vmin, vmax = self._configurar_limites_visuales(img, vlims)
 
         # Configuramos la ventanta de Matplotlib
-        fig, ax = plt.subplots(figsize=(10, 8))
+        fig, ax = plt.subplots(figsize=(10, 6))
 
         # Renderizamos según dimensiones
         if img.ndim == 2:
@@ -355,10 +356,13 @@ class Imagen:
 
     def aplicar_filtro(self, filtro: object = None):
         """
-        Aplica un objeto de tipo Filtro sobre la imagen. Registra el evento en la imagen original
+        Aplica un objeto de tipo Filtro sobre la imagen.
+        Registra el evento en la imagen original
+        
         Parametro:
             - filtro: Filtro es un objeto
         """
+        # Lo importamos localmente para evitar la importacion circular
         from bioimagenes.filtros.filtro import Filtro
 
         if filtro is None:
@@ -386,7 +390,7 @@ class Imagen:
     @staticmethod
     def normalizar(matriz: np.ndarray) -> np.ndarray:
         """
-        Método que normaliza una matriz al rango estándar 0-255 y la convierte a np.uint8.
+        Método que normaliza un array de numpy al rango estándar 0-255 y la convierte a np.uint8.
         Si la matriz original es un tipo entero superior a uint8 (ej: uint16), normaliza 
         usando el máximo teórico del formato (np.iinfo). De lo contrario, aplica Min-Max.
         """
@@ -396,7 +400,7 @@ class Imagen:
         # Forzamos a float32 para evitar desbordamientos en las operaciones
         matriz_float = matriz.astype(np.float32)
         
-        # Si es un tipo entero y es superior a uint8 (ej: int16, uint16, int32)
+        # Si es un tipo de entero y es superior a uint8 (ej: int16, uint16, int32)
         if np.issubdtype(tipo_original, np.integer) and tipo_original != np.uint8:
             
             # Obtenemos las propiedades del formato original (ej: para uint16 el max es 65535)
