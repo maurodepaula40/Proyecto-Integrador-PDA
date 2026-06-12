@@ -7,469 +7,680 @@ from bioimagenes.core.imagen import Imagen
 import numpy as np
 import matplotlib.pyplot as plt
 
-from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
+RUTA_RADIOGRAFIA = "tests/imagenes_test/radiografias/216840111366964012558082906712010004133151165_00-119-134.png"
 
 
-# ============================================================
-# TESTS DE FUNCIONAMIENTO - IMAGEN RADIOGRAFIA
-# ============================================================
+# ==========================================================
+# TESTS UNITARIOS - IMAGEN RADIOGRAFICA
+# ==========================================================
 
-print("\n==============================")
-print("TESTS DE FUNCIONAMIENTO")
-print("==============================")
+def test_creacion_imagen_radiografica():
+    """
+    Verifica que una ImagenRadiografia se cree correctamente
+    a partir de una matriz 2D.
+    """
 
+    data = np.array([
+        [0, 50, 100],
+        [150, 200, 255],
+        [30, 80, 120]
+    ], dtype=np.uint8)
 
-# ------------------------------------------------------------
-# TEST 1 - Crear una radiografía válida
-# ------------------------------------------------------------
+    img = ImagenRadiografia(data, tipo_estudio="torax", brillo=0)
 
-print("\nTEST 1 - Crear ImagenRadiografia con matriz 2D")
+    assert isinstance(img, ImagenRadiografia)
+    assert img.data.shape == (3, 3)
+    assert img.data.dtype == np.uint8
+    assert img.tipo_estudio == "torax"
+    assert img.brillo == 0
+    assert img.region_interes is None
 
-matriz = np.array([
-    [0, 50, 100],
-    [150, 200, 255],
-    [30, 80, 120]
-], dtype=np.uint8)
 
-rx = ImagenRadiografia(matriz, tipo_estudio="tórax", brillo=0)
+def test_rechazar_imagen_3d():
+    """
+    Verifica que ImagenRadiografia rechace matrices 3D.
+    """
 
-assert isinstance(rx, ImagenRadiografia)
-assert isinstance(rx.data, np.ndarray)
-assert rx.data.shape == (3, 3)
-assert rx.tipo_estudio == "tórax"
-assert rx.brillo == 0
+    data = np.zeros((10, 10, 3), dtype=np.uint8)
 
-print("OK - La radiografía se creó correctamente.")
+    try:
+        ImagenRadiografia(data)
 
+        assert False
 
-# ------------------------------------------------------------
-# TEST 2 - Validar que no acepte imagen 3D
-# ------------------------------------------------------------
+    except ValueError:
+        assert True
 
-print("\nTEST 2 - Validar error con matriz 3D")
 
-matriz_3d = np.zeros((10, 10, 3), dtype=np.uint8)
+def test_conversion_float_0_1_a_uint8():
+    """
+    Verifica que una imagen float entre 0 y 1 se convierta a uint8.
+    """
 
-try:
-    rx_3d = ImagenRadiografia(matriz_3d)
-    print("ERROR - La clase aceptó una matriz 3D y no debería.")
-except ValueError:
-    print("OK - La clase rechaza matrices 3D correctamente.")
+    data = np.array([
+        [0.0, 0.5],
+        [0.75, 1.0]
+    ], dtype=float)
 
+    img = ImagenRadiografia(data, tipo_estudio="mano")
 
-# ------------------------------------------------------------
-# TEST 3 - Conversión de imagen float normalizada
-# ------------------------------------------------------------
+    assert img.data.dtype == np.uint8
+    assert img.data.min() == 0
+    assert img.data.max() == 255
 
-print("\nTEST 3 - Crear radiografía desde valores float entre 0 y 1")
 
-matriz_float = np.array([
-    [0.0, 0.5],
-    [0.75, 1.0]
-], dtype=float)
+def test_ajustar_brillo_positivo():
+    """
+    Verifica que ajustar_brillo modifique self.data,
+    actualice el brillo y retorne self.
+    """
 
-rx_float = ImagenRadiografia(matriz_float, tipo_estudio="mano")
+    data = np.array([
+        [0, 50, 100],
+        [150, 200, 250]
+    ], dtype=np.uint8)
 
-assert rx_float.data.dtype == np.uint8
-assert rx_float.data.max() == 255
-assert rx_float.data.min() == 0
+    img = ImagenRadiografia(data, tipo_estudio="torax", brillo=0)
 
-print("OK - La imagen float se convirtió correctamente a uint8.")
+    resultado = img.ajustar_brillo(30)
 
+    assert resultado is img
+    assert img.brillo == 30
+    assert img.data.dtype == np.uint8
+    assert img.data.min() >= 0
+    assert img.data.max() <= 255
+    assert img.titulo_actual == "Radiografía — brillo 30"
 
-# ------------------------------------------------------------
-# TEST 4 - Ajustar brillo positivo
-# ------------------------------------------------------------
 
-print("\nTEST 4 - Ajustar brillo positivo")
+def test_ajustar_brillo_negativo():
+    """
+    Verifica que ajustar_brillo funcione con valores negativos.
+    """
 
-matriz_brillo = np.array([
-    [0, 50, 100],
-    [150, 200, 250]
-], dtype=np.uint8)
+    data = np.array([
+        [20, 60, 100],
+        [150, 200, 255]
+    ], dtype=np.uint8)
 
-rx_brillo = ImagenRadiografia(matriz_brillo, tipo_estudio="tórax")
+    img = ImagenRadiografia(data, tipo_estudio="torax", brillo=0)
 
-rx_brillo.ajustar_brillo(20)
+    resultado = img.ajustar_brillo(-40)
 
-assert rx_brillo.brillo == 20
-assert rx_brillo.data.dtype == np.uint8
-assert rx_brillo.data.min() >= 0
-assert rx_brillo.data.max() <= 255
+    assert resultado is img
+    assert img.brillo == -40
+    assert img.data.dtype == np.uint8
+    assert img.data.min() >= 0
+    assert img.data.max() <= 255
+    assert img.titulo_actual == "Radiografía — brillo -40"
 
-print("OK - El brillo positivo se aplicó correctamente.")
 
+def test_ajustar_brillo_rango_alto():
+    """
+    Verifica que ajustar_brillo funcione con imágenes cuyo rango
+    original supera 0-255.
+    """
 
-# ------------------------------------------------------------
-# TEST 5 - Ajustar brillo negativo
-# ------------------------------------------------------------
+    data = np.array([
+        [0, 1000, 2000],
+        [3000, 4000, 5000]
+    ], dtype=np.uint16)
 
-print("\nTEST 5 - Ajustar brillo negativo")
+    img = ImagenRadiografia(data, tipo_estudio="columna", brillo=0)
 
-matriz_brillo_negativo = np.array([
-    [20, 60, 100],
-    [150, 200, 255]
-], dtype=np.uint8)
+    img.ajustar_brillo(20)
 
-rx_brillo_negativo = ImagenRadiografia(matriz_brillo_negativo, tipo_estudio="tórax")
+    assert img.data.dtype == np.uint8
+    assert img.data.min() >= 0
+    assert img.data.max() <= 255
 
-rx_brillo_negativo.ajustar_brillo(-30)
 
-assert rx_brillo_negativo.brillo == -30
-assert rx_brillo_negativo.data.dtype == np.uint8
-assert rx_brillo_negativo.data.min() >= 0
-assert rx_brillo_negativo.data.max() <= 255
+def test_mejorar_contraste():
+    """
+    Verifica que mejorar_contraste modifique self.data y retorne self.
+    """
 
-print("OK - El brillo negativo se aplicó correctamente.")
+    data = np.array([
+        [80, 100, 120],
+        [130, 150, 170]
+    ], dtype=np.uint8)
 
+    img = ImagenRadiografia(data, tipo_estudio="abdomen")
 
-# ------------------------------------------------------------
-# TEST 6 - Ajustar brillo en imagen con rango mayor a 255
-# ------------------------------------------------------------
+    resultado = img.mejorar_contraste(factor=1.5)
 
-print("\nTEST 6 - Ajustar brillo en imagen con rango mayor a 255")
+    assert resultado is img
+    assert img.data.shape == data.shape
+    assert img.data.dtype == np.uint8
+    assert img.data.min() >= 0
+    assert img.data.max() <= 255
+    assert img.titulo_actual == "RX con contraste ajustado (1.5)"
 
-matriz_rango_alto = np.array([
-    [0, 1000, 2000],
-    [3000, 4000, 5000]
-], dtype=np.uint16)
 
-rx_rango_alto = ImagenRadiografia(matriz_rango_alto, tipo_estudio="columna")
+def test_invertir_intensidades():
+    """
+    Verifica que invertir_intensidades genere el negativo de la imagen.
+    """
 
-rx_rango_alto.ajustar_brillo(30)
+    data = np.array([
+        [0, 100],
+        [200, 255]
+    ], dtype=np.uint8)
 
-assert rx_rango_alto.data.dtype == np.uint8
-assert rx_rango_alto.data.min() >= 0
-assert rx_rango_alto.data.max() <= 255
+    img = ImagenRadiografia(data, tipo_estudio="torax")
 
-print("OK - El brillo funciona con imágenes fuera del rango 0-255.")
+    resultado = img.invertir_intensidades()
 
-# ------------------------------------------------------------
-# TEST 7 - Mejorar contraste
-# ------------------------------------------------------------
+    esperado = np.array([
+        [255, 155],
+        [55, 0]
+    ], dtype=np.uint8)
 
-print("\nTEST 7 - Mejorar contraste")
+    assert resultado is img
+    assert np.array_equal(img.data, esperado)
+    assert img.titulo_actual == "RX con intensidades invertidas"
 
-matriz_contraste = np.array([
-    [80, 100, 120],
-    [130, 150, 170]
-], dtype=np.uint8)
 
-rx_contraste = ImagenRadiografia(matriz_contraste, tipo_estudio="abdomen")
+def test_ecualizar_intensidades():
+    """
+    Verifica que ecualizar_intensidades modifique self.data,
+    conserve las dimensiones y retorne self.
+    """
 
-resultado_contraste = rx_contraste.mejorar_contraste(factor=1.5)
+    data = np.array([
+        [0, 0, 50],
+        [100, 150, 255]
+    ], dtype=np.uint8)
 
-assert isinstance(resultado_contraste, np.ndarray)
-assert resultado_contraste.shape == rx_contraste.data.shape
-assert resultado_contraste.dtype == np.uint8
-assert resultado_contraste.min() >= 0
-assert resultado_contraste.max() <= 255
+    img = ImagenRadiografia(data, tipo_estudio="torax")
 
-print("OK - El contraste se mejoró correctamente.")
+    resultado = img.ecualizar_intensidades()
 
-# ------------------------------------------------------------
-# TEST 8 - Invertir intensidades
-# ------------------------------------------------------------
+    assert resultado is img
+    assert img.data.shape == data.shape
+    assert img.data.dtype == np.uint8
+    assert img.data.min() >= 0
+    assert img.data.max() <= 255
+    assert img.titulo_actual == "RX con intensidades ecualizadas"
 
-print("\nTEST 8 - Invertir intensidades")
 
-matriz_invertir = np.array([
-    [0, 100],
-    [200, 255]
-], dtype=np.uint8)
+def test_seleccionar_region_interes():
+    """
+    Verifica que seleccionar_region_interes retorne una nueva instancia
+    de ImagenRadiografia con la región recortada.
+    """
 
-rx_invertir = ImagenRadiografia(matriz_invertir, tipo_estudio="tórax")
+    data = np.arange(100).reshape(10, 10).astype(np.uint8)
 
-rx_invertida = rx_invertir.invertir_intensidades()
+    img = ImagenRadiografia(data, tipo_estudio="mano")
 
-esperado = np.array([
-    [255, 155],
-    [55, 0]
-], dtype=np.uint8)
-
-assert isinstance(rx_invertida, ImagenRadiografia)
-assert np.array_equal(rx_invertida.data, esperado)
-
-print("OK - Las intensidades se invirtieron correctamente.")
-
-
-# ------------------------------------------------------------
-# TEST 9 - Ecualizar intensidades
-# ------------------------------------------------------------
-
-print("\nTEST 9 - Ecualizar intensidades")
-
-matriz_ecualizar = np.array([
-    [0, 0, 50],
-    [100, 150, 255]
-], dtype=np.uint8)
-
-rx_ecualizar = ImagenRadiografia(matriz_ecualizar, tipo_estudio="tórax")
-
-rx_ecualizada = rx_ecualizar.ecualizar_intensidades()
-
-assert isinstance(rx_ecualizada, ImagenRadiografia)
-assert rx_ecualizada.data.shape == rx_ecualizar.data.shape
-assert rx_ecualizada.data.dtype == np.uint8
-assert rx_ecualizada.data.min() >= 0
-assert rx_ecualizada.data.max() <= 255
-
-print("OK - La ecualización de intensidades funciona correctamente.")
-
-
-# ------------------------------------------------------------
-# TEST 10 - Seleccionar región de interés válida
-# ------------------------------------------------------------
-
-print("\nTEST 10 - Seleccionar región de interés válida")
-
-matriz_region = np.arange(100).reshape(10, 10).astype(np.uint8)
-
-rx_region = ImagenRadiografia(matriz_region, tipo_estudio="mano")
-
-recorte = rx_region.seleccionar_region_interes(
-    y_min=2,
-    y_max=6,
-    x_min=3,
-    x_max=8
-)
-
-assert isinstance(recorte, ImagenRadiografia)
-assert recorte.data.shape == (4, 5)
-
-print("OK - La región de interés se recortó correctamente.")
-
-
-# ------------------------------------------------------------
-# TEST 11 - Seleccionar región con coordenadas inválidas
-# ------------------------------------------------------------
-
-print("\nTEST 11 - Validar error en región de interés inválida")
-
-rx_region_error = ImagenRadiografia(np.zeros((10, 10), dtype=np.uint8))
-
-try:
-    rx_region_error.seleccionar_region_interes(
-        y_min=7,
-        y_max=3,
-        x_min=2,
-        x_max=5
+    recorte = img.seleccionar_region_interes(
+        y_min=2,
+        y_max=6,
+        x_min=3,
+        x_max=8
     )
-    print("ERROR - Aceptó una región inválida.")
-except ValueError:
-    print("OK - La clase rechaza regiones inválidas correctamente.")
+
+    assert isinstance(recorte, ImagenRadiografia)
+    assert recorte is not img
+    assert recorte.data.shape == (4, 5)
+    assert np.array_equal(recorte.data, data[2:6, 3:8])
+    assert recorte.titulo_actual == "Recorte [3:8, 2:6]"
 
 
-# ------------------------------------------------------------
-# TEST 12 - Detección de bordes
-# ------------------------------------------------------------
+def test_seleccionar_region_interes_invalida_minimo_mayor():
+    """
+    Verifica que se lance ValueError si los mínimos son mayores
+    o iguales que los máximos.
+    """
 
-print("\nTEST 12 - Detectar bordes")
+    data = np.zeros((10, 10), dtype=np.uint8)
 
-matriz_bordes = np.zeros((20, 20), dtype=np.uint8)
-matriz_bordes[5:15, 5:15] = 255
+    img = ImagenRadiografia(data)
 
-rx_bordes = ImagenRadiografia(matriz_bordes, tipo_estudio="tórax")
+    try:
+        img.seleccionar_region_interes(
+            y_min=7,
+            y_max=3,
+            x_min=2,
+            x_max=5
+        )
 
-rx_bordes.detectar_bordes()
+        assert False
 
-assert rx_bordes.data.shape == matriz_bordes.shape
-assert rx_bordes.data.dtype == np.uint8
-assert rx_bordes.data.min() >= 0
-assert rx_bordes.data.max() <= 255
-
-print("OK - La detección de bordes se ejecutó correctamente.")
-
-
-# ------------------------------------------------------------
-# TEST 13 - Propiedad region_interes
-# ------------------------------------------------------------
-
-print("\nTEST 13 - Verificar propiedad region_interes")
-
-rx_propiedad = ImagenRadiografia(np.zeros((10, 10), dtype=np.uint8))
-
-assert rx_propiedad.region_interes is None
-
-print("OK - La propiedad region_interes funciona correctamente.")
+    except ValueError:
+        assert True
 
 
-print("\n==============================")
-print("TODOS LOS TESTS DE FUNCIONAMIENTO FINALIZARON")
-print("==============================")
+def test_seleccionar_region_interes_fuera_de_rango():
+    """
+    Verifica que se lance ValueError si las coordenadas exceden
+    las dimensiones de la imagen.
+    """
+
+    data = np.zeros((10, 10), dtype=np.uint8)
+
+    img = ImagenRadiografia(data)
+
+    try:
+        img.seleccionar_region_interes(
+            y_min=2,
+            y_max=12,
+            x_min=1,
+            x_max=5
+        )
+
+        assert False
+
+    except ValueError:
+        assert True
 
 
-# ============================================================
-# TESTS CON IMÁGENES REALES
-# ============================================================
+def test_detectar_bordes():
+    """
+    Verifica que detectar_bordes modifique self.data, conserve
+    dimensiones y retorne self.
+    """
 
-print("\n==============================")
-print("TESTS CON IMÁGENES REALES")
-print("==============================")
+    data = np.zeros((30, 30), dtype=np.uint8)
+    data[10:20, 10:20] = 255
+
+    img = ImagenRadiografia(data, tipo_estudio="torax")
+
+    resultado = img.detectar_bordes()
+
+    assert resultado is img
+    assert img.data.shape == data.shape
+    assert img.data.dtype == np.uint8
+    assert img.data.min() >= 0
+    assert img.data.max() <= 255
+    assert img.titulo_actual == "RX con detección de bordes"
 
 
-# ------------------------------------------------------------
-# IMPORTANTE:
-# Cambiar esta ruta por la ruta real de tu imagen radiográfica.
-# Por ejemplo:
-# ruta_radiografia = r"C:\Users\belen\Proyecto-Integrador-PDA\imagenes\radiografia_torax.png"
-# ------------------------------------------------------------
+def test_historial_ajustar_brillo():
+    """
+    Verifica que ajustar_brillo agregue un registro al historial.
+    """
 
-ruta_radiografia = r"tests/imagenes_test/radiografias/46523715740384360192496023767246369337_veyewt.png"
+    data = np.zeros((10, 10), dtype=np.uint8)
+
+    img = ImagenRadiografia(data)
+
+    cantidad_inicial = len(img.historial)
+
+    img.ajustar_brillo(20)
+
+    assert len(img.historial) == cantidad_inicial + 1
 
 
-# ------------------------------------------------------------
-# TEST REAL 1 - Cargar imagen real
-# ------------------------------------------------------------
+def test_historial_invertir_intensidades_info():
+    """
+    Verifica que invertir_intensidades agregue un registro
+    al historial guardado en Info.
+    """
 
-print("\nTEST REAL 1 - Cargar imagen radiográfica real")
+    data = np.array([
+        [0, 100],
+        [150, 255]
+    ], dtype=np.uint8)
 
-try:
-    from bioimagenes.core.imagen import Imagen
+    img = ImagenRadiografia(data)
 
-    imagen_base = Imagen.cargar(ruta_radiografia)
+    cantidad_inicial = len(img.info.historial)
 
-    rx_real = ImagenRadiografia(
+    img.invertir_intensidades()
+
+    assert len(img.info.historial) == cantidad_inicial + 1
+
+
+def test_ver_imagen_original_no_es_nula():
+    """
+    Verifica que la imagen original quede guardada en el atributo original
+    heredado de Imagen.
+    """
+
+    data = np.array([
+        [0, 50],
+        [100, 150]
+    ], dtype=np.uint8)
+
+    img = ImagenRadiografia(data)
+
+    assert img.original is not None
+    assert np.array_equal(img.original, data)
+
+
+def test_modificar_data_no_modifica_original_en_brillo():
+    """
+    Verifica que ajustar_brillo use self.original como base y que
+    self.original siga existiendo.
+    """
+
+    data = np.array([
+        [0, 50],
+        [100, 150]
+    ], dtype=np.uint8)
+
+    img = ImagenRadiografia(data)
+
+    original_antes = img.original.copy()
+
+    img.ajustar_brillo(50)
+
+    assert not np.array_equal(img.data, original_antes)
+    assert np.array_equal(img.original, original_antes)
+
+
+# ==========================================================
+# TESTS CON RADIOGRAFÍA REAL
+# ==========================================================
+
+def test_cargar_radiografia_real():
+    """
+    Verifica que pueda cargarse una radiografía real.
+    Cambiar RUTA_RADIOGRAFIA por una ruta válida antes de ejecutar.
+    """
+
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+    rx = ImagenRadiografia(
         imagen_base.data,
-        tipo_estudio="radiografía real",
+        tipo_estudio="radiografia real",
         brillo=0
     )
 
-    assert isinstance(rx_real, ImagenRadiografia)
-    assert isinstance(rx_real.data, np.ndarray)
-    assert rx_real.data.ndim == 2
-
-    print("OK - La imagen real se cargó correctamente.")
-
-except Exception as e:
-    print(f"No se pudo cargar la imagen real. Revisar ruta o formato. Error: {e}")
+    assert rx.data is not None
+    assert rx.data.ndim == 2
+    assert isinstance(rx, ImagenRadiografia)
 
 
-# ------------------------------------------------------------
-# TEST REAL 2 - Visualizar imagen real original
-# ------------------------------------------------------------
+def test_dimensiones_radiografia_real():
+    """
+    Verifica que la radiografía real tenga dimensiones válidas.
+    """
 
-print("\nTEST REAL 2 - Visualizar imagen real original")
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
 
-try:
-    rx_real.visualizar()
-    print("OK - La imagen real original se visualizó correctamente.")
-
-except Exception as e:
-    print(f"No se pudo visualizar la imagen real original. Error: {e}")
-
-
-# ------------------------------------------------------------
-# TEST REAL 3 - Ajustar brillo y visualizar
-# ------------------------------------------------------------
-
-print("\nTEST REAL 3 - Ajustar brillo en imagen real")
-
-try:
-    rx_real.ajustar_brillo(50)
-    rx_real.visualizar()
-    print("OK - El brillo de la imagen real se ajustó correctamente.")
-
-except Exception as e:
-    print(f"No se pudo ajustar el brillo de la imagen real. Error: {e}")
-
-
-# ------------------------------------------------------------
-# TEST REAL 4 - Mejorar contraste y visualizar
-# ------------------------------------------------------------
-
-print("\nTEST REAL 4 - Mejorar contraste en imagen real")
-
-try:
-    rx_real_contraste = rx_real.mejorar_contraste(factor=1.5)
-    rx_real_contraste.visualizar()
-    print("OK - El contraste de la imagen real se mejoró correctamente.")
-
-except Exception as e:
-    print(f"No se pudo mejorar el contraste de la imagen real. Error: {e}")
-
-
-# ------------------------------------------------------------
-# TEST REAL 5 - Invertir intensidades y visualizar
-# ------------------------------------------------------------
-
-print("\nTEST REAL 5 - Invertir intensidades en imagen real")
-
-try:
-    rx_real_invertida = rx_real.invertir_intensidades()
-    rx_real_invertida.visualizar()
-    print("OK - Las intensidades de la imagen real se invirtieron correctamente.")
-
-except Exception as e:
-    print(f"No se pudo invertir la imagen real. Error: {e}")
-
-
-# ------------------------------------------------------------
-# TEST REAL 6 - Ecualizar intensidades y visualizar
-# ------------------------------------------------------------
-
-print("\nTEST REAL 6 - Ecualizar intensidades en imagen real")
-
-try:
-    rx_real_ecualizada = rx_real.ecualizar_intensidades()
-    rx_real_ecualizada.visualizar()
-    print("OK - La imagen real se ecualizó correctamente.")
-
-except Exception as e:
-    print(f"No se pudo ecualizar la imagen real. Error: {e}")
-
-
-# ------------------------------------------------------------
-# TEST REAL 7 - Detectar bordes y visualizar
-# ------------------------------------------------------------
-
-print("\nTEST REAL 7 - Detectar bordes en imagen real")
-
-try:
-    rx_real_bordes = ImagenRadiografia(
+    rx = ImagenRadiografia(
         imagen_base.data,
-        tipo_estudio="radiografía real",
+        tipo_estudio="radiografia real",
         brillo=0
     )
 
-    rx_real_bordes.detectar_bordes()
-    rx_real_bordes.visualizar()
+    filas, columnas = rx.data.shape
 
-    print("OK - Los bordes de la imagen real se detectaron correctamente.")
-
-except Exception as e:
-    print(f"No se pudo detectar bordes en la imagen real. Error: {e}")
+    assert filas > 0
+    assert columnas > 0
 
 
-# ------------------------------------------------------------
-# TEST REAL 8 - Seleccionar región de interés en imagen real
-# ------------------------------------------------------------
+def test_ajustar_brillo_radiografia_real():
+    """
+    Verifica que se pueda ajustar el brillo en una radiografía real.
+    """
 
-print("\nTEST REAL 8 - Seleccionar región de interés en imagen real")
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
 
-try:
-    alto, ancho = rx_real.data.shape
+    rx = ImagenRadiografia(
+        imagen_base.data,
+        tipo_estudio="radiografia real",
+        brillo=0
+    )
+
+    rx.ajustar_brillo(40)
+
+    assert rx.data.dtype == np.uint8
+    assert rx.data.min() >= 0
+    assert rx.data.max() <= 255
+    assert rx.brillo == 40
+
+
+def test_mejorar_contraste_radiografia_real():
+    """
+    Verifica que se pueda mejorar el contraste en una radiografía real.
+    """
+
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+    rx = ImagenRadiografia(
+        imagen_base.data,
+        tipo_estudio="radiografia real",
+        brillo=0
+    )
+
+    rx.mejorar_contraste(1.5)
+
+    assert rx.data.dtype == np.uint8
+    assert rx.data.min() >= 0
+    assert rx.data.max() <= 255
+
+
+def test_invertir_intensidades_radiografia_real():
+    """
+    Verifica que se puedan invertir las intensidades de una radiografía real.
+    """
+
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+    rx = ImagenRadiografia(
+        imagen_base.data,
+        tipo_estudio="radiografia real",
+        brillo=0
+    )
+
+    rx.invertir_intensidades()
+
+    assert rx.data.dtype == np.uint8
+    assert rx.data.min() >= 0
+    assert rx.data.max() <= 255
+
+
+def test_ecualizar_intensidades_radiografia_real():
+    """
+    Verifica que se pueda ecualizar una radiografía real.
+    """
+
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+    rx = ImagenRadiografia(
+        imagen_base.data,
+        tipo_estudio="radiografia real",
+        brillo=0
+    )
+
+    rx.ecualizar_intensidades()
+
+    assert rx.data.dtype == np.uint8
+    assert rx.data.min() >= 0
+    assert rx.data.max() <= 255
+
+
+def test_detectar_bordes_radiografia_real():
+    """
+    Verifica que se puedan detectar bordes en una radiografía real.
+    """
+
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+    rx = ImagenRadiografia(
+        imagen_base.data,
+        tipo_estudio="radiografia real",
+        brillo=0
+    )
+
+    rx.detectar_bordes()
+
+    assert rx.data.dtype == np.uint8
+    assert rx.data.min() >= 0
+    assert rx.data.max() <= 255
+
+
+def test_recortar_region_radiografia_real():
+    """
+    Verifica que se pueda recortar una región central de una radiografía real.
+    """
+
+    imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+    rx = ImagenRadiografia(
+        imagen_base.data,
+        tipo_estudio="radiografia real",
+        brillo=0
+    )
+
+    alto, ancho = rx.data.shape
 
     y_min = alto // 4
     y_max = alto // 2
     x_min = ancho // 4
     x_max = ancho // 2
 
-    rx_real_recorte = rx_real.seleccionar_region_interes(
+    recorte = rx.seleccionar_region_interes(
         y_min=y_min,
         y_max=y_max,
         x_min=x_min,
         x_max=x_max
     )
 
-    rx_real_recorte.visualizar()
-
-    print("OK - La región de interés de la imagen real se recortó correctamente.")
-
-except Exception as e:
-    print(f"No se pudo seleccionar la región de interés en la imagen real. Error: {e}")
+    assert isinstance(recorte, ImagenRadiografia)
+    assert recorte.data.ndim == 2
+    assert recorte.data.shape == (y_max - y_min, x_max - x_min)
 
 
-print("\n==============================")
-print("TESTS CON IMÁGENES REALES FINALIZADOS")
-print("==============================")
+# ==========================================================
+# EJECUCIÓN MANUAL
+# ==========================================================
+
+if __name__ == "__main__":
+
+    tests = [
+        test_creacion_imagen_radiografica,
+        test_rechazar_imagen_3d,
+        test_conversion_float_0_1_a_uint8,
+        test_ajustar_brillo_positivo,
+        test_ajustar_brillo_negativo,
+        test_ajustar_brillo_rango_alto,
+        test_mejorar_contraste,
+        test_invertir_intensidades,
+        test_ecualizar_intensidades,
+        test_seleccionar_region_interes,
+        test_seleccionar_region_interes_invalida_minimo_mayor,
+        test_seleccionar_region_interes_fuera_de_rango,
+        test_detectar_bordes,
+        test_historial_ajustar_brillo,
+        test_historial_invertir_intensidades_info,
+        test_ver_imagen_original_no_es_nula,
+        test_modificar_data_no_modifica_original_en_brillo,
+    ]
+
+    tests_reales = [
+        test_cargar_radiografia_real,
+        test_dimensiones_radiografia_real,
+        test_ajustar_brillo_radiografia_real,
+        test_mejorar_contraste_radiografia_real,
+        test_invertir_intensidades_radiografia_real,
+        test_ecualizar_intensidades_radiografia_real,
+        test_detectar_bordes_radiografia_real,
+        test_recortar_region_radiografia_real,
+    ]
+
+    print("\n=== EJECUCIÓN DE TESTS DE IMAGEN RADIOGRÁFICA ===\n")
+
+    aprobados = 0
+
+    for test in tests:
+
+        try:
+            test()
+
+            print(f"✓ {test.__name__}")
+
+            aprobados += 1
+
+        except AssertionError:
+
+            print(f"✗ {test.__name__}")
+
+        except Exception as e:
+
+            print(f"✗ {test.__name__} -> ERROR: {e}")
+
+    print(f"\nResultado tests unitarios: {aprobados}/{len(tests)} tests aprobados")
+
+    print("\n=== EJECUCIÓN DE TESTS CON RADIOGRAFÍA REAL ===\n")
+    print("Recordá cambiar RUTA_RADIOGRAFIA antes de ejecutar estos tests.\n")
+
+    aprobados_reales = 0
+
+    for test in tests_reales:
+
+        try:
+            test()
+
+            print(f"✓ {test.__name__}")
+
+            aprobados_reales += 1
+
+        except AssertionError:
+
+            print(f"✗ {test.__name__}")
+
+        except Exception as e:
+
+            print(f"✗ {test.__name__} -> ERROR: {e}")
+
+    print(f"\nResultado tests reales: {aprobados_reales}/{len(tests_reales)} tests aprobados")
+
+
+# ==========================================================
+# PRUEBA VISUAL CON IMÁGENES REALES
+# ==========================================================
+
+# # Para usar esta sección:
+# # 1. Cambiar RUTA_RADIOGRAFIA por la ruta real.
+# # 2. Descomentar las líneas que quieras probar.
+# # 3. Ejecutar el archivo.
+
+imagen_base = Imagen.cargar(RUTA_RADIOGRAFIA)
+
+rx = ImagenRadiografia(
+    imagen_base.data,
+    tipo_estudio="radiografia real",
+    brillo=0
+)
+
+# 1. Ver imagen original
+rx.visualizar(titulo="Radiografía original")
+
+# 2. Ajustar brillo
+rx.ajustar_brillo(50)
+rx.visualizar()
+
+# 3. Volver a ver la imagen original guardada
+rx.ver_imgOriginal(titulo="Radiografía original guardada")
+
+# 4. Mejorar contraste
+rx.mejorar_contraste(1.5)
+rx.visualizar()
+
+# # 5. Invertir intensidades
+rx.invertir_intensidades()
+rx.visualizar()
+
+# # 6. Ecualizar intensidades
+rx.ecualizar_intensidades()
+rx.visualizar()
+
+# 7. Detectar bordes
+rx.detectar_bordes()
+rx.visualizar()
+
+# 8. Recortar región de interés
+alto, ancho = rx.data.shape
+recorte = rx.seleccionar_region_interes(
+    y_min=alto // 4,
+    y_max=alto // 2,
+    x_min=ancho // 4,
+    x_max=ancho // 2
+)
+recorte.visualizar()
+print(rx.historial)
+print(rx.info)

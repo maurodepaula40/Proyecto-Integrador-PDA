@@ -78,8 +78,8 @@ class Filtro:
         if "sobel" in self.tipo:
             array_filtrado = np.abs(array_filtrado)
 
-        # escalamos la imagen a 0 y 255
-        self.data = Imagen.normalizar(array_filtrado)
+        # Escalamos la imagen a 0-255 y retornamos la matriz filtrada
+        return Imagen.normalizar(array_filtrado)
 
 
     def aplicar(self, imagen:object):

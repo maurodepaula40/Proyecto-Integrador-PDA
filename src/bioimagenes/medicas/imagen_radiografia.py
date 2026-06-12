@@ -163,69 +163,81 @@ class ImagenRadiografia(Imagen):
         Esto produce un negativo de la imagen:
         - las zonas claras pasan a oscuras
         - las zonas oscuras pasan a claras
+
+        Retorna
+        -------
+        self : ImagenRadiografia
+            Retorna la misma instancia con las intensidades invertidas.
         """
 
         # Invertimos los niveles de gris
         resultado = 255 - self.data
 
+        # Modificamos la imagen actual
+        self.data = resultado.astype(np.uint8)
+
+        # Actualizamos el título
         self.titulo_actual = "RX con intensidades invertidas"
 
         # Registramos la transformación en el historial
         self.info.historial.modificar_historial("Intensidades invertidas")
 
-        # Retornamos una nueva imagen radiográfica
-        return resultado
+        return self
 
     def ecualizar_intensidades(self):
         """
-        Redistribuye los píxeles para que usen todo el rango 0-255 de forma más uniforme, logrando más contraste.
+        Redistribuye los píxeles para que usen todo el rango 0-255 de forma más uniforme,
+        logrando más contraste.
+
         Ecualiza las intensidades de la radiografía mediante ecualización de histograma.
+
+        Modifica self.data y retorna self.
         """
 
-        # Calculamos el histograma (256 niveles de gris)
-        histograma, _ = np.histogram(self.data.flatten(),bins=256,range=(0, 256)) #devuelve histograma (grafico de cuantas veces aparece una intensidad en la imagen)
-        
-        #np.histogram devuelve histograma, bordes. Como no nos interesan los bordes→ ponemos _ 
-        # porque no necesitamos ese valor
+        # Primero normalizamos la imagen al rango 0-255.
+        # Esto evita errores si la radiografía real viene en uint16 o con valores mayores a 255.
+        datos = self.data.astype(np.float64)
 
-        #flatten pone las columnas continuas para tener todos los valores en la misma "linea" o lista
-        #  para que sea mas facil contar apariciones de intensidades
-        
-        ecual = np.zeros_like(histograma) #creamos array del mismo tamaño que el histograma
+        minimo = datos.min()
+        maximo = datos.max()
 
-        acumulado = 0 # variable para sumar las frecuencias
+        if maximo == minimo:
+            datos_normalizados = np.zeros_like(datos, dtype=np.uint8)
+        else:
+            datos_normalizados = ((datos - minimo) * 255 / (maximo - minimo)).astype(np.uint8)
 
-        for i in range(len(histograma)): #recorremos cada posición del histograma
-            acumulado += histograma[i] #sumamos la aparicion actual a la variable acumulada
-            
-            ecual[i] = acumulado #guardamos el valor de frecuencias en la misma posicion del array ecual
+        # Calculamos el histograma sobre la imagen ya normalizada
+        histograma, _ = np.histogram(datos_normalizados.flatten(),bins=256,range=(0, 256))
 
-        # Tomamos el valor mínimo del ecual.
-        # Corresponde a la menor cantidad acumulada de píxeles.
-        ecual_min = ecual.min()
+        ecual = np.zeros_like(histograma, dtype=np.float64)
 
-        # Tomamos el valor máximo del array ecual.
-        # Coincide con la cantidad total de píxeles de la imagen.
+        acumulado = 0
+
+        for i in range(len(histograma)):
+            acumulado += histograma[i]
+            ecual[i] = acumulado
+
+        ecual_min = ecual[ecual > 0].min()
         ecual_max = ecual.max()
 
-        # Aplicamos la fórmula de normalización para redistribuir los valores del array entre 0 y 255.
-        ecual_normalizada = ((ecual - ecual_min) * 255) / (ecual_max - ecual_min) # Restamos el mínimo para que la escala comience en 0.
-                                                                                  # Multiplicamos por 255 para llevar los valores al rango típico de una imagen de 8 bits.
-                                                                                  # Dividimos por (ecual_max - ecual_min) para ajustar proporcionalmente toda la escala.
-        
-        # Convertimos los resultados a enteros de 8 bits
-        ecual_normalizada = ecual_normalizada.astype(np.uint8)
+        if ecual_max == ecual_min:
+            resultado = datos_normalizados
+        else:
+            ecual_normalizada = ((ecual - ecual_min) * 255) / (ecual_max - ecual_min)
+            ecual_normalizada = np.clip(ecual_normalizada, 0, 255).astype(np.uint8)
 
-        resultado = ecual_normalizada[self.data] #usa cada valor de self.data como un indice para ecual_normalizada
-                                                 #el resultado es una matriz con los valores escualizados para cada uno de los indices
+            resultado = ecual_normalizada[datos_normalizados]
+
+        # Guardamos la imagen ecualizada
+        self.data = resultado.astype(np.uint8)
 
         # Actualizamos el título
         self.titulo_actual = "RX con intensidades ecualizadas"
-        # Registramos la transformación realizada en el historial asociado a la imagen.
-        self.info.historial.modificar_historial("Intensidades ecualizadas")
 
-        # Retornamos la matriz con la imagen ecualizada
-        return resultado
+        # Registramos la transformación realizada en el historial
+        self.historial.modificar_historial("Intensidades ecualizadas")
+
+        return self
 
     def detectar_bordes(self):
         """
@@ -250,6 +262,8 @@ class ImagenRadiografia(Imagen):
             # Registramos el cambio en el historial.
             self.historial.modificar_historial("Se realizó Detección de Bordes con operador Sobel")
 
+            return self 
+        
         except Exception as e:
             raise RuntimeError(f"Error al ejecutar la detección de bordes por Sobel: {e}") 
         pass
@@ -412,4 +426,5 @@ class ImagenRadiografia(Imagen):
         fig.canvas.mpl_connect("motion_notify_event", hover)
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.show()
+        self.historial.modificar_historial(f"Se visualizó el cluster de radiografías con k={k}.")
 
