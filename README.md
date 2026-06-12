@@ -893,6 +893,11 @@ reconstruccion_tomografia.html
 
 ## Autoría
 
+Proyecto desarrollado por:
+
+- Valentino de Paula
+- Belén Echenique
+
 Proyecto Integrador PDA.
 
 Librería desarrollada con fines académicos para el procesamiento y análisis de bioimágenes.
