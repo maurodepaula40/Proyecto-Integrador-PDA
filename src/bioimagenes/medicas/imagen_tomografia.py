@@ -57,12 +57,53 @@ class ImagenTomografica(Imagen):
         super().__init__(data, info)
         
         #definir atributos privados
-        self.ventana_actual = (float(data.min()), float(data.max()))
+        self.ventana_actual = (float(self.data.min()), float(self.data.max()))
         self.corte_actual = 0 #arranca en el primer slice
 
         # si el usuario pasó un Info lo asignamos, si no ya lo creó super()
         if info is not None:
             self.info = info
+
+    #Propiedades para acceder a atributos protegidos
+
+    @property
+    def ventana_actual(self):
+        """Devuelve la ventana de visualización actual."""
+        return self._ventana_actual
+
+    @ventana_actual.setter
+    def ventana_actual(self, valor):
+        """Valida y asigna la ventana de visualización actual."""
+        if not isinstance(valor, tuple) or len(valor) != 2:
+            raise TypeError("ventana_actual debe ser una tupla de dos valores.")
+        minimo, maximo = valor
+        if not isinstance(minimo, (int, float)) or not isinstance(maximo, (int, float)):
+            raise TypeError("Los valores de ventana_actual deben ser numéricos.")
+        if minimo >= maximo:
+            raise ValueError("El mínimo de la ventana debe ser menor al máximo.")
+        self._ventana_actual = (float(minimo), float(maximo))
+
+    @property
+    def corte_actual(self):
+        """Devuelve el índice del corte actualmente seleccionado."""
+        return self._corte_actual
+
+    @corte_actual.setter
+    def corte_actual(self, valor):
+        """Valida y asigna el corte actual."""
+        if valor is None:
+            self._corte_actual = None
+            return
+        if not isinstance(valor, int):
+            raise TypeError("corte_actual debe ser un número entero.")
+        if valor < 0:
+            raise ValueError("corte_actual no puede ser negativo.")
+        if self.data.ndim == 3 and valor >= self.data.shape[2]:
+            raise ValueError(
+                f"corte_actual está fuera de rango. "
+                f"La imagen tiene {self.data.shape[2]} cortes."
+            )
+        self._corte_actual = valor
 
     def obtener_corte(self, indice:int):
         """ Devuelve un corte (slice) específico del volumen.
@@ -392,16 +433,3 @@ class ImagenTomografica(Imagen):
         self.info.historial.modificar_historial(f"Corte {self.corte_actual} visualizado con colores por tejido")
 
         return imagen_rgb      
-
-    # def mostrar_historial(self):
-    #     """
-    #     Imprime en pantalla todos los cambios registrados en el historial
-    #     de la imagen, numerados y en orden cronológico.
-    #     """
-    #     if len(self.info.historial) == 0:
-    #         print("El historial está vacío.")
-    #         return
-
-    #     print(f"Historial de cambios ({len(self.info.historial)} registros)")
-    #     for numero, cambio in enumerate(self.info.historial, start=1):
-    #         print(f"  {numero}. {cambio}")                                                           

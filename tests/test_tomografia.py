@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from bioimagenes.medicas.imagen_tomografia import ImagenTomografica
+import os
+import pytest
 
-RUTA_TOMOGRAFIA = "docs/AC421363f (1).nii"
+RUTA_TOMOGRAFIA = "tests/imagenes_test/AC421363f.nii"
 
 # ==========================================================
 # TESTS UNITARIOS (arrays creados manualmente)
@@ -163,15 +165,27 @@ def test_visualizar_corte_coloreado():
 
     assert resultado.shape == (2, 2, 3)
 
-
 # ==========================================================
 # TESTS CON TOMOGRAFÍA REAL
 # ==========================================================
+
+def verificar_imagen_real():
+    """
+    Omite los tests que requieren una tomografía real si el archivo
+    no se encuentra en la ruta esperada.
+    """
+    if not os.path.exists(RUTA_TOMOGRAFIA):   #si no se encuentra la imagen, se omiten (skip) los tests que requieren una imagen real
+        pytest.skip(
+            "No se encontró la imagen AC421363f.nii en tests/imagenes_test/. "
+            "Este test se omite porque requiere una imagen tomográfica real."
+        )
+
 
 def test_cargar_tomografia_real():
     """
     Verifica que pueda cargarse una tomografía .nii real.
     """
+    verificar_imagen_real()
 
     img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
@@ -183,6 +197,7 @@ def test_dimensiones_tomografia_real():
     """
     Verifica que las dimensiones del volumen sean válidas.
     """
+    verificar_imagen_real()
 
     img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
@@ -197,6 +212,7 @@ def test_obtener_corte_central():
     """
     Verifica que pueda obtenerse el corte central.
     """
+    verificar_imagen_real()
 
     img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
@@ -211,6 +227,7 @@ def test_seleccionar_corte_central():
     """
     Verifica la selección del corte central.
     """
+    verificar_imagen_real()
 
     img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
@@ -225,6 +242,7 @@ def test_valores_hounsfield():
     """
     Verifica que existan valores mínimos y máximos distintos.
     """
+    verificar_imagen_real()
 
     img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
@@ -238,6 +256,7 @@ def test_aplicar_preset_sobre_tomografia_real():
     """
     Verifica el funcionamiento del preset hueso sobre una imagen real.
     """
+    verificar_imagen_real()
 
     img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
@@ -251,75 +270,27 @@ def test_aplicar_preset_sobre_tomografia_real():
 # ==========================================================
 
 if __name__ == "__main__":
+    print("\n=== PRUEBA VISUAL DE IMAGEN TOMOGRÁFICA ===\n")
 
-    tests = [
-        test_creacion_imagen_tomografica,
-        test_obtener_corte,
-        test_obtener_corte_fuera_de_rango,
-        test_seleccionar_corte,
-        test_historial_seleccionar_corte,
-        test_ajustar_ventana,
-        test_ajustar_ventana_invalida,
-        test_aplicar_preset,
-        test_aplicar_preset_invalido,
-        test_visualizar_corte_coloreado,
-        test_cargar_tomografia_real,
-        test_dimensiones_tomografia_real,
-        test_obtener_corte_central,
-        test_seleccionar_corte_central,
-        test_valores_hounsfield,
-        test_aplicar_preset_sobre_tomografia_real,
-    ]
+    if not os.path.exists(RUTA_TOMOGRAFIA):
+        print("No se encontró la imagen tomográfica real.")
+        print(f"Ruta esperada: {RUTA_TOMOGRAFIA}")
+        print(
+            "Para ejecutar esta prueba visual, colocá el archivo "
+            "'AC421363f.nii' dentro de la carpeta 'tests/imagenes_test/'."
+        )
 
-    print("\n=== EJECUCIÓN DE TESTS DE IMAGEN TOMOGRÁFICA ===\n")
+    else:
+        tomo = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
 
-    aprobados = 0
+        tomo.seleccionar_corte(320)
+        tomo.mostrar_corte()
 
-    for test in tests:
+        tomo.visualizar_corte()
 
-        try:
-            test()
+        tomo.aplicar_preset("hueso")
+        tomo.mostrar_corte()
 
-            print(f"✓ {test.__name__}")
+        print(tomo.info.historial)
 
-            aprobados += 1
-
-        except AssertionError:
-
-            print(f"✗ {test.__name__}")
-
-        except Exception as e:
-
-            print(f"✗ {test.__name__} -> ERROR: {e}")
-
-    print(f"\nResultado: {aprobados}/{len(tests)} tests aprobados")
-
-# ==========================================================
-# PRUEBA CON IMAGENES REALES
-# ==========================================================
-
-# 1. Cargar
-tomo = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
-# print(tomo)
- 
-# 2. Ver un corte
-tomo.seleccionar_corte(320)
-tomo.mostrar_corte()
- 
-# # 3. Coloreado por tejido
-tomo.visualizar_corte()
- 
-# 4. Cambiar preset y ver de nuevo
-tomo.aplicar_preset("hueso")
-tomo.mostrar_corte()
-
-# 5. Ver el historial de cambios
-tomo.mostrar_historial()
-
-
-img = ImagenTomografica.cargar(RUTA_TOMOGRAFIA)
-
-tomo = ImagenTomografica(RUTA_TOMOGRAFIA)
-
-
-img.reconstruir_3d(200,300)
+        tomo.reconstruir_3d(200, 300)

@@ -69,9 +69,8 @@ Proyecto-Integrador-PDA/
 │
 └── tests/
 │    └── imagenes_test/
-         ├──carpeta_tc
-            └── AC421363f.nii
-
+│        ├──carpeta_tc
+│           └── AC421363f.nii
 │    └──test_filtro
 │    └──test_historial
 │    └──test_imagen
@@ -86,27 +85,29 @@ Proyecto-Integrador-PDA/
 └── README.md
 
 ```
-
 ---
 
+```markdown
 ## Requisitos
 
 El proyecto requiere Python 3.10 o superior.
 
-Dependencias principales:
+Las dependencias principales se encuentran declaradas en el archivo `pyproject.toml`:
 
-```text
-numpy
-matplotlib
-opencv-python
-pydicom
-nibabel
-Pillow
-scipy
-plotly
-scikit-learn
-pytest
-```
+- `numpy`
+- `matplotlib`
+- `Pillow`
+- `opencv-python`
+- `scipy`
+- `nibabel`
+- `scikit-learn`
+- `plotly`
+- `pydicom`, si se utiliza carga de archivos DICOM
+
+Las dependencias de desarrollo, como `pytest`, `black` y `ruff`, se instalan mediante:
+
+```bash
+pip install -e ".[dev]"
 
 > Nota: aunque algunas dependencias pueden no aparecer en el archivo de configuración del paquete, se utilizan dentro del código fuente. Por ejemplo, `nibabel` se usa para cargar archivos `.nii`, `scipy` para convoluciones, `plotly` para reconstrucción tomográfica interactiva y `scikit-learn` para agrupamiento de radiografías.
 
@@ -117,7 +118,7 @@ pytest
 Primero, clonar el repositorio:
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone <https://github.com/maurodepaula40/Proyecto-Integrador-PDA.git>
 cd Proyecto-Integrador-PDA
 ```
 
@@ -137,16 +138,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Instalar las dependencias:
+Instalar el proyecto en modo editable junto con las dependencias de desarrollo:
 
 ```bash
-pip install numpy matplotlib opencv-python pydicom nibabel Pillow scipy plotly scikit-learn pytest
-```
+pip install -e ".[dev]"```
 
-El proyecto tiene un archivo `pyproject.toml`, por ende también puede instalarse en modo editable:
-
-```bash
-pip install -e .
+Esta instalación permite usar la librería bioimagenes desde el código fuente y ejecutar los tests con pytest.
 ```
 
 ---
@@ -405,8 +402,7 @@ O bien ejecutar todos los tests:
 pytest
 ```
 
-> Importante: si el archivo `AC421363f.nii` no está en la carpeta indicada, los tests de `ImagenTomografica` que dependan de imágenes reales pueden fallar por archivo no encontrado.
-
+> Importante: Si el archivo `AC421363f.nii` no está en la carpeta indicada, los tests que dependen de esa imagen serán omitidos automáticamente.
 ---
 
 ## Documentación
