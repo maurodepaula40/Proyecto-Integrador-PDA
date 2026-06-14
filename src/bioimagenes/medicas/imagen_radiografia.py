@@ -242,6 +242,7 @@ class ImagenRadiografia(Imagen):
     def detectar_bordes(self):
         """
         Detecta los bordes anatómicos de la radiografía.
+        Utilizando un operador sobel de 7x7
         """
         filtro_h = Filtro(nombre="sobelhorizontalx7")
         filtro_v = Filtro(nombre="sobelverticalx7")
@@ -257,6 +258,7 @@ class ImagenRadiografia(Imagen):
             # Guardamos el resultado final en 'self.data'
             self.data = np.clip(img_filtrada, 0, 255).astype(np.uint8)
             
+            # Actualizamos el titulo 
             self.titulo_actual = "RX con detección de bordes"
 
             # Registramos el cambio en el historial.
@@ -266,7 +268,6 @@ class ImagenRadiografia(Imagen):
         
         except Exception as e:
             raise RuntimeError(f"Error al ejecutar la detección de bordes por Sobel: {e}") 
-        pass
 
     def seleccionar_region_interes(self, y_min:int, y_max:int, x_min:int, x_max:int):
         """
@@ -303,7 +304,7 @@ class ImagenRadiografia(Imagen):
 
         info_nueva = self.info
         # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
-        #info_nueva["modificado"] = True 
+        info_nueva.datos["cortada"] = True 
 
         # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
         img_recortada = ImagenRadiografia(matriz_recortada, info_nueva)
@@ -426,5 +427,7 @@ class ImagenRadiografia(Imagen):
         fig.canvas.mpl_connect("motion_notify_event", hover)
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.show()
+
+        # Guardamos en el historial el cambio realizado
         self.historial.modificar_historial(f"Se visualizó el cluster de radiografías con k={k}.")
 

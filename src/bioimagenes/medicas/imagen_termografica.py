@@ -27,21 +27,12 @@ class ImagenTermografica(Imagen):
         # Guardamos temp_min y temp_max
         self.temp_min = temp_min
         self.temp_max = temp_max
+        
         # Validamos el rango
         if temp_min >= temp_max:
             raise ValueError(f"Error: La temperatura mínima ({temp_min}) debe ser menor que la máxima ({temp_max}).")
 
-        # Convertimos self.data a float32 para poder almacenar decimales de temperatura
-        # y evitar que se trunquen los valores en las operaciones matemáticas
-        intensidades_float = self.data.astype(np.float32)
-
-        # Aplicamos la fórmula de escalado lineal:
-        # (self.data / 255.0) da un porcentaje entre 0.0 y 1.0.
-        # Luego lo multiplicamos por el tamaño del rango térmico y le sumamos el piso (temp_min).
-        matriz_temperaturas = (intensidades_float / 255.0) * (temp_max - temp_min) + temp_min
-
-        # Modificamos in place, guardamos la matriz de temperaturas en el objeto
-        self.data = matriz_temperaturas
+        self.data = temp_min + (self.data.astype(np.float32) / 255.0) * (temp_max - temp_min)
 
         # Asignamos un titulo
         self.titulo_actual = f"Imagen Termográfica ({temp_min}°C a {temp_max}°C)"
@@ -49,113 +40,83 @@ class ImagenTermografica(Imagen):
         # Registramos en el historial
         self.historial.modificar_historial(f"Conversión a temperatura: rango [{temp_min}, {temp_max}] °C")
 
+        return self
 
     def mapa_calor(self):
         """
-        Genera un mapa de calor.
-        Registrar el procesamiento en el historial de cambios.
-
-        Returns:
-            imagen_termografica: Nueva instancia con la matriz convertida en un mapa de calor.
+        Aplica un mapa de color sobre la imagen tormográfica.
         """
-        # Obtenemos los valores térmicos mínimos y máximos de la matriz de datos
-        data_min = self.data.min()
-        data_max = self.data.max()
-
-        #Normalizamos la imagen
-        matriz_normalizada = Imagen.normalizar(self.data)
-
-        # Llevamos temporalmente al rango 0.0 - 1.0 para que Matplotlib pueda aplicar el mapa de color
-        data_para_cmap = matriz_normalizada / 255.0
-
-        # Mapeamos a color RGB con la paleta "jet"
-        cmap_termico = plt.get_cmap("jet")
+        # Reutilizamos el método estático de la clase base para obtener la imagen entre 0 y 255 en np.uint8
+        grises_visuales = Imagen.normalizar(self.data)
         
-        # Convertimos en una estructura RGB descartando el canal alfa 
-        matriz_rgb_float = cmap_termico(data_para_cmap)[:, :, :3]
-
-        # Transformamos los valores flotantes al formato estándar de 8 bits (0-255)
-        self.data = (matriz_rgb_float * 255.0).astype(np.uint8)
-
-        # Agregamos un titulo
-        self.titulo_actual = f"Mapa de Calor (Rango: {data_min:.1f}°C a {data_max:.1f}°C)"
-
-        # Registramos el cambio en el historial
-        self.historial.modificar_historial("Imagen Radiográfica convertida a mapa de calor")
-
-    def segmentar_por_rangos(self,rango_min:int|float,rango_max:int|float):
-        """
-        Método que segmenta la imagen termografica según un rango de interés,
-        pintando la zona seleccionada de rojo directamente sobre la imagen actual.
-        Registra la operación en el historial de cambios.
-
-        Parámetros:
-            -rango_min (int | float): Valor térmico mínimo para iniciar el corte del rango.
-            -rango_max (int | float): Valor térmico máximo para finalizar el corte del rango.
-        """
-        #Validamos que el límite mínimo no supere o iguale al límite máximo establecido
-        if rango_min >= rango_max:
-            raise ValueError(f"Error en los parámetros: El rango mínimo ({rango_min}) debe ser menor al máximo ({rango_max}).")
-
-        #Obtenemos los extremos térmicos presentes en la matriz
-        absoluto_min = self.data.min()
-        absoluto_max = self.data.max()
-
-        #Validamos que los valores que se pasaron como parametro no queden fuera de rango de la imagen
-        if rango_min < absoluto_min or rango_max > absoluto_max:
-            raise ValueError(
-                f"Error de desbordamiento: El rango [{rango_min}, {rango_max}] excede los límites reales de la imagen "
-                f"[{absoluto_min:.2f}, {absoluto_max:.2f}]."
-            )
-
-        #Generamos una máscara binaria donde los píxeles dentro del rango toman valor 255 y el resto 0
-        mascara = cv2.inRange(self.data, rango_min, rango_max)
-
-        #Convertimos la matriz de escala de grises a formato RGB para habilitar el uso de colores
-        img_segmentada_a_color = cv2.cvtColor(self.data, cv2.COLOR_GRAY2RGB)
+        # Aplicamos la paleta de colores sobre los grises
+        img_color = cv2.applyColorMap(grises_visuales, cv2.COLORMAP_JET)
         
-        #Asignamos color rojo puro (RGB: 255, 0, 0) a todos los píxeles validados por la máscara
-        img_segmentada_a_color[mascara > 0] = [255, 0, 0]
+        # Convertimos de BGR a RGB y pisamos self.data
+        self.data = cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB)
         
-        # Pisamos la matriz del objeto actual con el resultado a color
-        self.data = img_segmentada_a_color
+        # Actualizamos el titulo
+        self.titulo_actual = "Mapa de Calor"
+        self.historial.modificar_historial("Se aplicó mapa de calor")
+        return self
 
-        # Ponemos un titulo, modificando el objeto actual
-        self.titulo_actual = f"Segmentación ({rango_min} a {rango_max})"
-
-
-        #Añadimos el cambio de la segmentación en el historial del objeto original.
-        self.historial.modificar_historial(f"Se aisló rango [{rango_min}, {rango_max}]")
-
-
-    def detectar_puntos_calientes(self, temperatura: int | float, tolerancia: int|float = 1.0):
+    def segmentar_por_rangos(self, min_temp: float, max_temp: float):
         """
-        Detecta los puntos calientes o críticos con un valor de temperatura específico,
-        pintándolos de rojo directamente sobre la imagen actual.
-        Registra el cambio en el historial de modificaciones.
-
-        Parámetros:
-            temperatura (int|float): Valor térmico objetivo en grados Celsius.
-            tolerancia (int|float): Margen de desvío permitido arriba y abajo del objetivo. Por defecto 0.5.
+        Aísla las zonas que se encuentren dentro del rango térmico 
+        en grados Celsius especificado y las pinta de rojo.
         """
-        #Calculamos el límite térmico inferior y superior
+
+        # Creamos la máscara lógica usando las temperaturas Celsius reales
+        mascara = (self.data >= min_temp) & (self.data <= max_temp)
+
+        # Normalizamos la matriz original a formato visual uint8 (0-255) para el fondo
+        v_min, v_max = self.data.min(), self.data.max()
+        if v_max - v_min == 0:
+            fondo_gris = np.zeros(self.data.shape, dtype=np.uint8)
+        else:
+            fondo_gris = (((self.data - v_min) / (v_max - v_min)) * 255).astype(np.uint8)
+
+        # 4. Construimos la imagen de salida en 3 canales (RGB)
+        imagen_rgb = cv2.cvtColor(fondo_gris, cv2.COLOR_GRAY2RGB)
+
+        # 5. Pintamos de ROJO PURO [255, 0, 0] donde la máscara lógica sea verdadera
+        imagen_rgb[mascara] = [255, 0, 0]
+
+        # Guardamos el estado final y registramos la operación
+        self.data = imagen_rgb
+        # Actualizamos el titulo
+        self.titulo_actual = f"Segmentación ({min_temp:.1f}°C a {max_temp:.1f}°C)"
+        # Guardamos el cambio en el historial
+        self.historial.modificar_historial(f"Segmentación por rangos térmicos: {min_temp} - {max_temp}")
+
+
+    def detectar_puntos_calientes(self, temperatura: float, tolerancia: float = 1.0):
+        """
+        Detecta focos térmicos críticos basándose en un umbral Celsius y su tolerancia,
+        destacándolos en color rojo.
+        """
+        # Calculamos los límites de la ventana térmica objetivo
         limite_inferior = temperatura - tolerancia
         limite_superior = temperatura + tolerancia
 
-        #Generamos la máscara aislando únicamente los píxeles que caen dentro del rango
-        puntos_calientes = cv2.inRange(self.data, limite_inferior, limite_superior)
+        # Evaluamos la máscara directamente sobre las temperaturas 
+        mascara = (self.data >= limite_inferior) & (self.data <= limite_superior)
 
-        #Convertimos la matriz de escala de grises a formato RGB para habilitar el uso de colores
-        img_puntos_calientes = cv2.cvtColor(self.data, cv2.COLOR_GRAY2RGB)
-        
-        #Asignamos color rojo puro (RGB: 255, 0, 0) a todos los píxeles validados por la máscara
-        img_puntos_calientes[puntos_calientes > 0] = [255, 0, 0]
+        # Normalizamos la matriz original a formato visual de grises (0-255)
+        v_min, v_max = self.data.min(), self.data.max()
+        if v_max - v_min == 0:
+            fondo_gris = np.zeros(self.data.shape, dtype=np.uint8)
+        else:
+            fondo_gris = (((self.data - v_min) / (v_max - v_min)) * 255).astype(np.uint8)
 
-        # Modificacion in place, guardamos la matriz RGB directamente en el objeto actual
-        self.data = img_puntos_calientes
-    
-        # Ponemos un titulo 
-        self.titulo_actual = f"Puntos Térmicos Críticos ({temperatura}°C)"
+        # Pasamos a 3 canales (RGB)
+        imagen_rgb = cv2.cvtColor(fondo_gris, cv2.COLOR_GRAY2RGB)
 
-        #Registramos el cambio en el historial de la imagen original
-        self.historial.modificar_historial(f"Se aislaron los puntos con temperatura de {temperatura}°C (Tolerancia: +-{tolerancia})")
+        # Destacamos los puntos calientes en ROJO PURO [255, 0, 0]
+        imagen_rgb[mascara] = [255, 0, 0]
+
+        #Actualizamos el estado de self.data
+        self.data = imagen_rgb
+        #Actualizamos el titulo
+        self.titulo_actual = f"Puntos Críticos ({temperatura:.1f}°C)"
+        self.historial.modificar_historial(f"Detección de puntos calientes en: {temperatura} (+/-{tolerancia})")

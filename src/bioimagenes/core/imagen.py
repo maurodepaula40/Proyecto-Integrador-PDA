@@ -173,7 +173,7 @@ class Imagen:
         t_min = getattr(self, "temp_min_calibrada", None)
         t_max = getattr(self, "temp_max_calibrada", None)
 
-        # Si la imagen es RGB, forzamos la barra
+        # Si la imagen es RGB (Mapa de calor, Segmentación, etc.)
         if img.ndim != 2:
             try:
                 # Sincronizamos los colores al 100% usando el mapeador escalar con la paleta 'jet'
@@ -182,52 +182,38 @@ class Imagen:
                 cbar = fig.colorbar(mapeador_escalar, ax=ax, shrink=0.7)
 
                 # Si por algún motivo las variables no existen, usamos un rango estimado por defecto
-                # para que nunca más vuelva a salir 0-255 en un mapa de calor térmico
                 if t_min is None or t_max is None:
-                    t_min, t_max = 32.0, 40.0  # El rango estándar de tus imágenes
+                    t_min, t_max = 32.0, 40.0  # El rango estándar humano
 
                 # Configuramos las 6 marcas fijas de temperatura
                 posiciones = np.linspace(0, 255, 6)
                 valores_termicos = np.linspace(t_min, t_max, 6)
                 
-                etiquetas = []
-                for t in valores_termicos:
-                    etiquetas.append(f"{t:.1f}°C")
+                etiquetas = [f"{t:.1f}°C" for t in valores_termicos]
                 
                 cbar.set_ticks(posiciones)
                 cbar.set_ticklabels(etiquetas)
-                cbar.set_label("Temperatura", rotation=270, labelpad=15)
+                cbar.set_label("Temperatura (°C)", rotation=270, labelpad=15)
                 
-            except Exception:
-                pass  # Si algo falla de forma extrema, continúa abajo por seguridad
+                # Cortamos la ejecución acá para evitar que se duplique la barra de abajo
+                return 
 
-        # Si la iamgen esta en escala de grises (2D)
+            except Exception:
+                pass  # Si algo falla, continúa abajo por seguridad
+
+        # Si la imagen es 2D (Escala de grises pura: Radiografías, Tomografías o Térmica sin procesar)
         cbar = fig.colorbar(im, ax=ax, shrink=0.7)
         
-        if img.ndim == 2:
+        if t_min is not None and t_max is not None and img.dtype.kind == "f":
+            etiqueta_generica = "Temperatura (°C)"
+        elif img.ndim == 2:
             etiqueta_generica = "Intensidad"
         else:
             etiqueta_generica = "Intensidad de Color (RGB)"
             
         cbar.set_label(etiqueta_generica, rotation=270, labelpad=15)
     
-    def _configurar_limites_visuales(self, img: np.ndarray, vlims: tuple = None) -> tuple:
-        """
-        Método privado para determinar los límites numéricos (vmin, vmax) 
-        del contraste visual según el tipo de datos y parámetros,
-        que tambien se utiliza en el metodo visualizar().
-        """
-        if vlims is not None:
-            return vlims
-        
-        # Si no hay vlims y es flotante calibrado (ej: temperaturas reales > 1.0)
-        if img.dtype.kind == "f" and img.max() > 1.0:
-            return img.min(), img.max()
-            
-        # Para el resto (0-255 o flotantes estándar 0.0-1.0), dejamos que imshow decida solo
-        return None, None
-    
-    def visualizar(self, titulo: str = None, data: np.ndarray = None, cmap_gris: str = "gray", vlims: tuple = None):
+    def visualizar(self, titulo: str = None, data: np.ndarray = None, cmap_gris: str = "gray"):
         """
         Permite mostrar una imagen almacenada utilizando la librería Matplotlib.
         """
@@ -237,18 +223,24 @@ class Imagen:
         else:
             img = data
         
-        # Ponemos un titulo a la imagen
-        titulo_a_mostrar = getattr(self, "titulo_actual", "Visualización de Imagen Médica") if titulo is None else titulo
-
-        # Llamos al metodo configurar limites visuales
-        vmin, vmax = self._configurar_limites_visuales(img, vlims)
-
-        # Configuramos la ventanta de Matplotlib
+        # Si el usuario no pasó un título por parámetro, usamos el de la imagen
+        if titulo is None:
+            # Intentamos sacar 'titulo_actual'. Si no existe, usamos el texto por defecto
+            if hasattr(self, "titulo_actual"):
+                titulo_a_mostrar = self.titulo_actual
+            else:
+                titulo_a_mostrar = "Visualización de Imagen Médica"
+        else:
+            # Si el usuario pasó un título por parámetro, usamos ese textualmente
+            titulo_a_mostrar = titulo
+        
+        # Configuramos la ventana de Matplotlib
         fig, ax = plt.subplots(figsize=(10, 6))
 
-        # Renderizamos según dimensiones
+
+        # Renderizamos según dimensiones aplicando directamente vmin y vmax sin intermediarios
         if img.ndim == 2:
-            im = ax.imshow(img, cmap=cmap_gris, vmin=vmin, vmax=vmax, interpolation="none")
+            im = ax.imshow(img, cmap=cmap_gris, interpolation="none")
         else:
             im = ax.imshow(img, interpolation="none")
 
