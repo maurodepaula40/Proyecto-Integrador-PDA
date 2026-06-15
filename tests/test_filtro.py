@@ -2,6 +2,7 @@ import os
 import numpy as np
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.filtros.filtro import Filtro
+from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
 
 # ==========================================================
 # CONFIGURACIÓN: Ajustá la ruta a tu carpeta de radiografías
@@ -207,3 +208,35 @@ def demo_procesamiento_radiografia():
 
 if __name__ == "__main__":
     demo_procesamiento_radiografia()
+
+
+
+# # 1. Cargamos la radiografía real (Crea el objeto de tipo Imagen)
+# rx = ImagenRadiografia.cargar(RUTA_RADIOGRAFIA_REAL)
+# rx2 = ImagenRadiografia.cargar(RUTA_RADIOGRAFIA_REAL)
+
+#     # 2 INSTANCIAMOS EL FILTRO: Creamos un objeto de la clase Filtro (ej: sharpen)
+#     # Al hacer esto, se ejecuta el __init__ y se carga el kernel matemático en el objeto
+# mi_filtro = Filtro("sobelhorizontalx7", tamaño=7)
+
+#     # 3. APLICAMOS EL FILTRO: Invocamos el método desde el objeto creado
+# matriz_filtrada = mi_filtro.aplicar(rx)
+
+#     # 4. ENCAPSULAMOS Y VISUALIZAMOS: Envolvemos la matriz uint8 resultante en un objeto Imagen
+# rx_procesada = Imagen(matriz_filtrada)
+# rx_procesada.titulo_actual = "Radiografía con Filtro sobel horizontal x7"
+# rx_procesada.visualizar()
+
+# rx2.detectar_bordes()
+# rx2.visualizar()
+
+
+marcapaso = Imagen.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
+mi_filtro2 = Filtro("sobelhorizontalx5", tamaño=5)
+
+    # 3. APLICAMOS EL FILTRO: Invocamos el método desde el objeto creado
+img_filtrada = mi_filtro2.aplicar(marcapaso)
+rx_filtrado = Imagen(img_filtrada)
+rx_filtrado.visualizar()
+print(rx_filtrado.data.shape)
+
