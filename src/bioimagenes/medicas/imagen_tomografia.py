@@ -171,15 +171,15 @@ class ImagenTomografica(Imagen):
 
         plt.show()
 
-    #método mas directo para acceder y visualizar un corte al mismo tiempo,
-    #solo combina los metodos seleccionar_corte y mostrar_corte
-    
+    # Método mas directo para acceder y visualizar un corte al mismo tiempo,
+    # Solo combina los metodos seleccionar_corte y mostrar_corte
     def mostrar_slice(self, indice:int):
         """Visualiza directamente un corte del volumen."""
 
         self.seleccionar_corte(indice)
 
         self.mostrar_corte()
+        return self
     
     
     def reconstruir_3d(self,indice_inicio=0,indice_fin=None,paso=None,reducir_resolucion=True):
@@ -343,7 +343,7 @@ class ImagenTomografica(Imagen):
 
         self.ventana_actual = (minimo,maximo)  #cambiamos la ventana actual a una nueva definida x el min y max
 
-        self.info.historial.modificar_historial(f"Ventana ajustada: ({minimo},{maximo})") #la ventana nueva se agrega al historial
+        self.historial.modificar_historial(f"Ventana ajustada: ({minimo},{maximo})") #la ventana nueva se agrega al historial
 
     def aplicar_preset(self,tipo_tejido):
         "Configura automáticamente una ventana de visualización predefinida según el tejido seleccionado."
@@ -364,7 +364,7 @@ class ImagenTomografica(Imagen):
 
         self.ajustar_ventana(minimo,maximo) #ajustamos la ventana segun el tipo de tejido para que destaque x sobre los otros
 
-        self.info.historial.modificar_historial(f"Preset aplicado: {tipo_tejido}") #lo agregamos al historial
+        self.historial.modificar_historial(f"Preset aplicado: {tipo_tejido}") #lo agregamos al historial
 
     def visualizar_corte(self):
         """
@@ -430,6 +430,6 @@ class ImagenTomografica(Imagen):
         plt.show()
 
         # Registramos en el historial
-        self.info.historial.modificar_historial(f"Corte {self.corte_actual} visualizado con colores por tejido")
+        self.historial.modificar_historial(f"Corte {self.corte_actual} visualizado con colores por tejido")
 
         return imagen_rgb      
