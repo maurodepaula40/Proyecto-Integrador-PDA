@@ -97,7 +97,7 @@ class Imagen:
         # Verificamos que el parametro ingresado sea un array de numpy
         if not isinstance(nuevo_array, np.ndarray):
             raise TypeError(
-                f"Error de tipo: Se espera una array de Numpy (np.ndarray), "
+                f"Error de tipo: Se espera una array de NumPy (np.ndarray), "
                 f"se recibió un dato del tipo '{type(nuevo_array)}'.")
         # Asignamos la matriz o array de numpy a la variable privada encapsulada
         self.__data = nuevo_array
@@ -396,7 +396,7 @@ class Imagen:
         if np.issubdtype(tipo_original, np.integer) and tipo_original != np.uint8:
             
             # Obtenemos las propiedades del formato original (ej: para uint16 el max es 65535)
-            valor_maximo_original = np.iinfo(matriz_float.data.dtype).max
+            valor_maximo_original = np.iinfo(tipo_original).max
 
             # Escalamos a 0 y 255
             matriz_normalizada = (matriz_float/float(valor_maximo_original)) * 255.0
