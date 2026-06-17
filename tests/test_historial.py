@@ -5,26 +5,43 @@ def test_basico():
     assert len(h) == 0  #verifico que no tenga nada, assert sirve para hacer el test
                         # si pasa el test dice passed, si no falla
 
-def test_agregar_un_cambio():
-    h = Historial()  #creo historial vacío
-    h.modificar_historial("Filtro aplicado")  #Agrego un cambio al Historial
+# ==========================================================
+# CORRECCIÓN DE LOS TESTS DE HISTORIAL
+# ==========================================================
 
-    assert len(h) == 1
-    assert h.ultimo_cambio == "Filtro aplicado" #Verificación del utlimo cambio cuando hay 1 solo
+def test_agregar_un_cambio():
+    """Verifica que al agregar un cambio se guarde la estructura de diccionario."""
+    h = Historial()
+    h.modificar_historial("Filtro aplicado")
+    
+    # Comprobamos que el cambio se guardó en la lista interna
+    assert len(h.lista_cambios) == 1
+    # Accedemos a la clave 'operacion' del diccionario guardado
+    assert h.lista_cambios[0]['operacion'] == "Filtro aplicado"
+
 
 def test_ultimo_cambio():
+    """Asegura que devuelva el último diccionario de operación registrado."""
     h = Historial()
+    h.modificar_historial("Operación A")
+    h.modificar_historial("Operación B")
+    
+    ultimo = h.ultimo_cambio
+    # Evaluamos que devuelva el diccionario o el texto según tu método real
+    assert ultimo['operacion'] == "Operación B"
 
-    h.modificar_historial("A")   #Agrego cosas al historial
-    h.modificar_historial("B")
-    h.modificar_historial("C")
-
-    assert h.ultimo_cambio == "C"   #verifico si el ultimo cambio es en realidad C, si no falla el test
 
 def test_str():
-    h = Historial(["A", "B"])     # Creo un historial con dos cambios iniciales
-
-    texto = str(h)     # Convierto el objeto a string usando __str__
-
-    assert "Total de cambios: 2" in texto  # Verifico que aparezca la cantidad correcta de cambios
-    assert "Último cambio: B" in texto   # Verifico que el último cambio sea el correcto
+    """Verifica la correcta conversión del reporte del historial a texto sin romper índices."""
+    cambios_iniciales = [
+        {"fecha": "2026-06-17 10:00:00", "operacion": "Carga inicial"},
+        {"fecha": "2026-06-17 10:15:00", "operacion": "Filtro Gaussiano"}
+    ]
+    
+    h = Historial(cambios_iniciales)
+    texto = str(h)
+    
+    # Verificamos que el reporte impreso contenga las cabeceras e información estructural
+    assert "HISTORIAL CLÍNICO DE LA IMAGEN" in texto
+    assert "Carga inicial" in texto
+    assert "Filtro Gaussiano" in texto

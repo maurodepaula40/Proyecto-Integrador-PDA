@@ -7,7 +7,6 @@ from bioimagenes.core.historial import Historial
 from bioimagenes.core.info import Info
 from PIL import Image as PILImage
 import numpy as np
-import matplotlib.pyplot as plt
 import pytest
 
 # Ruta de la imagen de prueba
@@ -104,7 +103,7 @@ def test_info_setter_error_tipo(matriz_2d_valida):
 
 
 # ==========================================================
-# 3. TESTS DE MÉTODOS MÁGICOS (__len__, __str__, __getitem__)
+# 3. TESTS DE MÉTODOS NATIVOS (__len__, __str__, __getitem__)
 # ==========================================================
 
 def test_metodo_len(matriz_2d_valida):
