@@ -6,7 +6,7 @@ def test_basico():
                         # si pasa el test dice passed, si no falla
 
 # ==========================================================
-# CORRECCIÓN DE LOS TESTS DE HISTORIAL
+#   TESTS DE HISTORIAL
 # ==========================================================
 
 def test_agregar_un_cambio():

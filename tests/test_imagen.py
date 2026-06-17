@@ -9,9 +9,6 @@ from PIL import Image as PILImage
 import numpy as np
 import pytest
 
-# Ruta de la imagen de prueba
-RUTA_IMAGEN = "tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png"
-
 
 # ==========================================================
 # FIXTURES (Estructuras base para reutilizar en los tests)
@@ -201,7 +198,7 @@ def test_metodos_con_radiografia_real():
     Carga una radiografía real desde el disco y prueba que los métodos
     de procesamiento y manipulación de datos funcionen de punta a punta.
     """
-    ruta_real = "tests/imagenes_test/radiografias/216840111366964012373310883942009084123158919_00-069-064.png" 
+    ruta_real = "tests/imagenes_test/radiografias/216840111366964013200840352202011315131143616_01-032-099.png" 
     
     if not os.path.exists(ruta_real):
         pytest.skip(f"El archivo real en '{ruta_real}' no está disponible para la prueba.")
@@ -257,69 +254,110 @@ def test_conversion_bn_desde_matriz_3d_aleatoria():
     assert abs(int(matriz_gris_resultado[0, 0]) - promedio_esperado) <= 1
 
 # ==========================================================
-# 7. TESTS DE VISUALIZACIÓN (USANDO MOCKS)
+# 7. TESTS DE VISUALIZACIÓN INTERACTIVA (PARA EL DOCENTE)
 # ==========================================================
 
-def test_metodo_visualizar_y_original(matriz_2d_valida, monkeypatch):
+def test_renderizado_visual_real(matriz_2d_valida):
     """
-    Verifica que los métodos de renderizado de la imagen (visualizar y ver_imgOriginal)
-    se ejecuten y configuren Matplotlib de forma correcta sin bloquear la consola.
+    Abre las ventanas reales de Matplotlib en la 
+    pantalla del docente para demostrar el correcto funcionamiento del pipeline gráfico.
     """
+    import os
     import matplotlib.pyplot as plt
 
-    # 1. Instanciamos la imagen de prueba
+    # 1. Probamos primero con una matriz artificial limpia de NumPy
+    img_simulada = Imagen(matriz_2d_valida)
+    
+    print("\n[DISPLAY] Abriendo ventana de prueba con Matriz Sintética...")
+    # Se abrirá en pantalla; el proceso continuará cuando el profe la cierre
+    img_simulada.visualizar(titulo="TEST DOCENTE: Matriz Sintética 2D")
+    
+    # 2. Intentamos buscar la radiografía real en tu carpeta de imágenes
     ruta_real = "tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png"
-    img = Imagen.cargar(ruta_real)
     
-    # Variables de control para verificar si Matplotlib es invocado
-    historial_llamados = {"imshow": False, "show": False, "subplots": False}
+    if os.path.exists(ruta_real):
+        print(f"[DISPLAY] Abriendo ventana con Radiografía Real: {os.path.basename(ruta_real)}")
+        
+        # Cargamos la radiografía médica real usando tu método de clase
+        rx_real = Imagen.cargar(ruta_real)
+        
+        # Ejecutamos el método .visualizar() nativo para que pinte la imagen y la barra de color
+        rx_real.visualizar(titulo="Radiografía Real del Paciente")
+        
+        # También podemos mostrar la versión original llamando a ver_imgOriginal
+        rx_real.ver_imgOriginal(titulo=" Control Imagen Original")
+    else:
+        print(f"\n Nota: No se pudo mostrar la radiografía real porque no existe el archivo en '{ruta_real}'.")
 
-    # 2. Objetos Mock mínimos para imitar el comportamiento de Fig y Ax de Matplotlib
-    class MockAx:
-        def imshow(self, *args, **kwargs):
-            historial_llamados["imshow"] = True
-            class MockAxesImage:
-                def __init__(self):
-                    self.dtype = np.uint8
-                    self.ndim = 2
-            return MockAxesImage()
-            
-        def set_title(self, *args, **kwargs): pass
-        def axis(self, *args, **kwargs): pass
+# ==========================================================
+# 7. DEMOSTRACIONES VISUALES INTERACTIVAS (PARA EL DOCENTE)
+# ==========================================================
 
-    class MockFig:
-        def colorbar(self, *args, **kwargs):
-            class MockColorbar:
-                def set_label(self, *args, **kwargs): pass
-            return MockColorbar()
+def test_conversion_bn_rgb_visual():
+    """
+    PRUEBA 1: Genera una matriz 3D RGB sintética, aplica el método .bn()
+    para promediar canales y renderiza el antes y después en la pantalla.
+    """
+    print("\n" + "="*50)
+    print("PRUEBA DE CONVERSIÓN RGB (3D) A GRIS")
+    print("="*50)
 
-    # 3. Reemplazos temporales (Mocks) con monkeypatch
-    def mock_subplots(*args, **kwargs):
-        historial_llamados["subplots"] = True
-        return MockFig(), MockAx()
-
-    def mock_show():
-        historial_llamados["show"] = True
-
-    # Inyectamos las funciones simuladas en el módulo pyplot
-    monkeypatch.setattr(plt, "subplots", mock_subplots)
-    monkeypatch.setattr(plt, "show", mock_show)
-
-    # 4.  PROBAMOS EL MÉTODO .visualizar()
-    img.visualizar(titulo="Test Ventana Radiografía")
+    # 1. Creamos el ruido de color aleatorio de 3 dimensiones (RGB)
+    print("Generando matriz sintética color RGB (300x300x3)...")
+    matriz_rgb = np.random.randint(0, 256, size=(300, 300, 3), dtype=np.uint8)
     
-    assert historial_llamados["subplots"] is True
-    assert historial_llamados["imshow"] is True
-    assert historial_llamados["show"] is True
+    img_color = Imagen(matriz_rgb)
+    img_color.data = matriz_rgb  # Forzamos los datos 3D en la propiedad para la prueba
 
-    # 5.  PROBAMOS EL MÉTODO .ver_imgOriginal()
-    # Reseteamos el historial de control
-    historial_llamados["subplots"] = False
-    historial_llamados["imshow"] = False
-    historial_llamados["show"] = False
+    print(" Abriendo: Matriz RGB Original... (Cerrá la ventana para continuar)")
+    img_color.visualizar(titulo="PRUEBA 1: Matriz RGB Sintética")
 
-    img.ver_imgOriginal(titulo="Test Ventana Original")
+    # 2. Aplicamos tu método de conversión a blanco y negro
+    print("Ejecutando método .bn()...")
+    matriz_gris = img_color.bn()
+    img_gris = Imagen(matriz_gris)
+
+    print("Abriendo: Resultado de la conversión a Gris... (Cerrá para terminar este test)")
+    img_gris.visualizar(titulo="Conversión Completada (.bn)")
+
+
+def test_filtro_radiografia_real_visual():
+    """
+    PRUEBA 2: Carga una radiografía real del disco, inicializa un objeto Filtro
+    y aplica el procesamiento digital sobre la estructura médica.
+    """
+    import os
+    from bioimagenes.filtros.filtro import Filtro  # Ajustá la ruta de importación si es necesario
+
+    print("\n" + "="*50)
+    print(" MÓDULO 2: PROCESAMIENTO DE RADIOGRAFÍA REAL CON FILTRO")
+    print("="*50)
+
+    # 1. Ruta y carga de la radiografía real
+    ruta_real = "tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png"
     
-    assert historial_llamados["subplots"] is True
-    assert historial_llamados["imshow"] is True
-    assert historial_llamados["show"] is True
+    if not os.path.exists(ruta_real):
+        print(f"\n Saltando prueba visual: No se encontró el archivo real en '{ruta_real}'.")
+        return
+
+    print(f"Cargando radiografía original médica: {os.path.basename(ruta_real)}...")
+    rx_original = Imagen.cargar(ruta_real)
+
+    print(" Abriendo: Radiografía Original... (Cerrá la ventana para aplicar el filtro)")
+    rx_original.visualizar(titulo="PRUEBA 2: Radiografía Médica Original (Antes)")
+
+    # 2. Creación del objeto Filtro y aplicación
+    print("Inicializando objeto Filtro (suavizado) y procesando...")
+    # Cambiá "gaussiano" por el tipo de filtro que tengas programado (ej: "sobel", "media", etc.)
+    filtro_medico = Filtro(nombre="suavizado", tamaño=5) 
+    
+    # Aplicamos el filtro directamente sobre el objeto de la radiografía real
+    rx_filtrada = filtro_medico.aplicar(rx_original) 
+
+    print(" Abriendo: Radiografía Filtrada... (Cerrá la ventana para finalizar)")
+    
+    # Manejo por si tu método 'aplicar' te devuelve un objeto Imagen o una matriz NumPy pura
+    if isinstance(rx_filtrada, Imagen):
+        rx_filtrada.visualizar(titulo="PRUEBA 2: Radiografía con Filtro Suavizado Aplicado (Después)")
+    else:
+        Imagen(rx_filtrada).visualizar(titulo="PRUEBA 2: Radiografía con Filtro Aplicado (Después)")

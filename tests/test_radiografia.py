@@ -3,7 +3,7 @@ from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
 from bioimagenes.core.imagen import Imagen
 import numpy as np
 
-RUTA_RADIOGRAFIA = "tests/imagenes_test/radiografias/216840111366964012558082906712010004133151165_00-119-134.png"
+RUTA_RADIOGRAFIA = "tests/imagenes_test/radiografias/216840111366964013515091760022012318080539431_01-152-111.png"
 
 
 # ==========================================================
