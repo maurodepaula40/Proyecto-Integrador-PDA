@@ -274,10 +274,10 @@ class ImagenRadiografia(Imagen):
         Recorta una región de interés específica dentro de la imagen radiográfica.
 
         Parámetros:
-            -y_min (int): Coordenada vertical izquiera (columna izquierda).
-            -y_max (int): Coordenada vertical derecha (columna derecha).
-            -x_min (int): Coordenada horizontal superior (fila superior).
-            -x_max (int): Coordenada horizontal final (fila inferior).
+            -y_min (int): Fila inicial de la región.
+            -y_max (int): Fila final de la región.
+            -x_min (int): Columna inicial de la región.
+            -x_max (int): Columna final de la región.
 
         Retorna:
             imagen_radiografia: Nueva instancia que almacena la submatriz recortada.
@@ -289,25 +289,38 @@ class ImagenRadiografia(Imagen):
         # Obtenemos las dimensiones reales (alto y ancho) de la matriz de la radiografía
         alto_real, ancho_real = self.data.shape[:2]
 
+        
         # Validamos que los límites mínimos no superen o igualen a los límites máximos
         if x_min >= x_max or y_min >= y_max:
             raise ValueError(f"Error de rango: Los valores mínimos [{x_min}, {y_min}] "
                             f"deben ser menores que los máximos [{x_max}, {y_max}].")
+        
+        # Validamos que las coordenadas no sean negativas
+        if x_min < 0 or y_min < 0:
+            raise ValueError("Error de rango: Las coordenadas no pueden ser negativas.") 
         
         # Validamos que ninguna coordenada este fuera de rango del tamaño de la matriz
         if x_max > ancho_real or y_max > alto_real:
             raise ValueError(f"Error de rango: Las coordenadas exceden los límites de la radiografía "
                             f"(Tamaño actual: {ancho_real}x{alto_real}).")
         
+        # Guardamos la región seleccionada en el objeto original
+        self._region_interes = (x_min, y_min, x_max, y_max)
+
         # Extraer la submatriz utilizando slicing
         matriz_recortada = self.data[y_min:y_max, x_min:x_max]
+        
+        # Creamos una copia independiente de la información
+        info_nueva = Info(self.info.datos.copy())
 
-        info_nueva = self.info
-        # Actualizar las dimensiones en la información técnica si el diccionario lo requiere
-        info_nueva.datos["cortada"] = True 
+        # Marcamos que la nueva imagen fue cortada
+        info_nueva.datos["cortada"] = True
 
         # Instanciamos el nuevo objeto radiográfico pasando la submatriz y los metadatos
-        img_recortada = ImagenRadiografia(matriz_recortada, info_nueva)
+        img_recortada = ImagenRadiografia(matriz_recortada, info=info_nueva)
+        
+        # Guardamos la región en la imagen recortada
+        img_recortada._region_interes = (x_min, y_min, x_max, y_max)
 
         # Asignamos un nuevo titulo al nuevo objeto detallando el área del recorte
         img_recortada.titulo_actual = f"Recorte [{x_min}:{x_max}, {y_min}:{y_max}]"
