@@ -187,17 +187,17 @@ if __name__ == "__main__":
 termografia1 = ImagenTermografica.cargar("tests/imagenes_test/termografias/N11102.jpg")
 termografia1.convertir_a_temperatura(32, 40)
 termografia1.mapa_calor()
-termografia1.visualizar("Imagen Termográfica 1")
+termografia1.visualizar()
 
 termografia2 = ImagenTermografica.cargar("tests/imagenes_test/termografias/N11108.jpg")
 termografia2.convertir_a_temperatura(33,42)
 termografia2.detectar_puntos_calientes(41)
-termografia2.visualizar("Imagen Termográfica 2")
+termografia2.visualizar()
 
 termografia3 = ImagenTermografica.cargar("tests/imagenes_test/termografias/N11105.jpg")
 termografia3.convertir_a_temperatura(30,43)
 termografia3.segmentar_por_rangos(35.5,40.0)
-termografia3.visualizar("Imagen Termográfica 3")
+termografia3.visualizar()
 
 #Si queremos ver la imagen original
 termografia1.ver_imgOriginal("Imagen Termografica 1 Original Recuperada")
