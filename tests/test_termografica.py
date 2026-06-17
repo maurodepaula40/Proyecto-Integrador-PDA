@@ -184,15 +184,22 @@ if __name__ == "__main__":
 
 
 
-imagen_base = Imagen.cargar("tests/imagenes_test/termografias/N11102.jpg")
-objeto_img = ImagenTermografica(imagen_base.data)
+termografia1 = ImagenTermografica.cargar("tests/imagenes_test/termografias/N11102.jpg")
+termografia1.convertir_a_temperatura(32, 40)
+termografia1.mapa_calor()
+termografia1.visualizar("Imagen Termográfica 1")
 
-# 2. Aplicamos el contrato obligatorio (Pasamos a Celsius)
-objeto_img.convertir_a_temperatura(32, 40)
+termografia2 = ImagenTermografica.cargar("tests/imagenes_test/termografias/N11108.jpg")
+termografia2.convertir_a_temperatura(33,42)
+termografia2.detectar_puntos_calientes(41)
+termografia2.visualizar("Imagen Termográfica 2")
 
-objeto_img.segmentar_por_rangos(35,38)
+termografia3 = ImagenTermografica.cargar("tests/imagenes_test/termografias/N11105.jpg")
+termografia3.convertir_a_temperatura(30,43)
+termografia3.segmentar_por_rangos(35.5,40.0)
+termografia3.visualizar("Imagen Termográfica 3")
 
-# 🌟 4. EL LUGAR PERFECTO: Al final de todo el pipeline de procesamiento
-objeto_img.visualizar()
-
-print(objeto_img.historial)
+#Si queremos ver la imagen original
+termografia1.ver_imgOriginal("Imagen Termografica 1 Original Recuperada")
+termografia2.ver_imgOriginal("Imagen Termografica 2 Original Recuperada")
+termografia3.ver_imgOriginal("Imagen Termografica 3 Original Recuperada")

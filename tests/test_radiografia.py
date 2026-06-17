@@ -680,3 +680,10 @@ recorte = rx.seleccionar_region_interes(
 recorte.visualizar()
 print(rx.historial)
 print(rx.info.datos)
+
+
+#Probamos el metodo visualizar_cluster
+carpeta_rx = "tests/imagenes_test/radiografias"
+rx = ImagenRadiografia.cargar(ruta=RUTA_RADIOGRAFIA)
+rx.visualizar_cluster(carpeta_radiografias=carpeta_rx)
+print(rx.historial)

@@ -370,24 +370,28 @@ class ImagenRadiografia(Imagen):
         etiquetas = kmeans.fit_predict(puntos_2d)
         return etiquetas
 
-    # Método  
+     
     def visualizar_cluster(self,carpeta_radiografias, k=3):
         """
         Método principal que agrupa las radiografías completas en un plano 2D
         y genera la gráfica interactiva con ventana emergente al pasar el cursor.
+        
+        Parametro:
+            - carpeta_radiografias: direccion de una caperta con imagenes radiograficas
+                                    en formato png y que contenga mas de 3 imagenes radiograficas
         """
         # Procesamos el set de datos completo
-        vectores, imagenes_reales, nombres = self.cargar_y_vectorizar_imagenes(carpeta_radiografias)
+        vectores, imagenes_reales, nombres = self._cargar_y_vectorizar_imagenes(carpeta_radiografias)
         
         if len(vectores) == 0:
             print("No se encontraron imágenes válidas.")
             return
             
         # Obtenemos coordenadas X (Feature 1) e Y (Feature 2)
-        puntos_2d = self.reducir_dimensiones(vectores)
+        puntos_2d = self._reducir_dimensiones(vectores)
         
         # Clasificamos a qué grupo pertenece a cada radiografía
-        etiquetas = self.agrupar_con_kmeans(puntos_2d, k=k)
+        etiquetas = self._agrupar_con_kmeans(puntos_2d, k=k)
         
         # Creamos la gráfica interactiva de Matplotlib
         fig, ax = plt.subplots(figsize=(10, 7))
@@ -443,4 +447,3 @@ class ImagenRadiografia(Imagen):
 
         # Guardamos en el historial el cambio realizado
         self.historial.modificar_historial(f"Se visualizó el cluster de radiografías con k={k}.")
-
