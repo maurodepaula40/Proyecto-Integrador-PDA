@@ -2,7 +2,6 @@ import os
 import numpy as np
 from bioimagenes.core.imagen import Imagen
 from bioimagenes.filtros.filtro import Filtro
-from bioimagenes.medicas.imagen_radiografia import ImagenRadiografia
 
 # ==========================================================
 # CONFIGURACIÓN: Ajustá la ruta a tu carpeta de radiografías
@@ -116,127 +115,98 @@ def test_aplicar_sharpen_radiografia_real():
 
 
 # ==========================================================
-# PANEL DE EJECUCIÓN CONTINUA
+# PANEL DE EJECUCIÓN CONTINUA E INTEGRACIÓN VISUAL (DOCENTE)
 # ==========================================================
 
-if __name__ == "__main__":
-    todos_los_tests = [
-        test_creacion_e_inicializacion_filtro,
-        test_error_filtro_inexistente,
-        test_filtrado_no_altera_dimensiones,
-        test_filtro_suavizado_reduce_varianza_global,
-        
-        test_aplicar_suavizado_radiografia_real,
-        test_aplicar_sobel_horizontal_radiografia_real,
-        test_aplicar_sharpen_radiografia_real
-    ]
-
-    print("\n=== EJECUTANDO CONTROLES DE CALIDAD: FILTROS EN RADIOGRAFÍAS (7 TESTS) ===\n")
-    aprobados = 0
-
-    for test in todos_los_tests:
-        try:
-            test()
-            print(f"✓ {test.__name__}")
-            aprobados += 1
-        except AssertionError:
-            print(f"✗ {test.__name__} -> ERROR: Aserción fallida (revisar normalización o dimensiones).")
-        except Exception as e:
-            print(f"✗ {test.__name__} -> CRASH NO CONTROLADO: {e}")
-
-    print(f"\n[Resultado del Panel]: {aprobados}/{len(todos_los_tests)} módulos radiográficos aprobados.")
-
-
-def demo_procesamiento_radiografia():
-    # 1. Definimos la ruta de la radiografía real
-    
+def test_pipeline_demostracion_visual_docente():
+    """
+    Este módulo actúa como el cierre interactivo de la suite de pruebas.
+    Se ejecuta nativamente tanto en IDEs como en el Símbolo del Sistema (CMD) 
+    vía pytest, abriendo consecutivamente las ventanas de Matplotlib para el docente.
+    """
+    # 1. Verificación de la ruta física de la radiografía
     if not os.path.exists(RUTA_RADIOGRAFIA_REAL):
-        print(f"Error: No se encontró la radiografía en la ruta: {RUTA_RADIOGRAFIA_REAL}")
-        print("Por favor, verifica el nombre del archivo en tu carpeta 'tests/imagenes_test/radiografias/'.")
+        print(f"\n Saltando demostración visual: No se encontró la radiografía en: {RUTA_RADIOGRAFIA_REAL}")
+        print("Por favor, verifica el nombre del archivo en tu carpeta de pruebas.")
         return
 
-    print("=== Iniciando Pipeline de Procesamiento Radiográfico ===")
+    print("\n" + "="*60)
+    print(" INICIANDO PIPELINE DE DEMOSTRACIÓN RADIOGRÁFICA INTERACTIVA ")
+    print("="*60)
     
     # 2. Cargamos la imagen original del paciente
+    print("\n Cargando radiografía original...")
     img_original = Imagen.cargar(RUTA_RADIOGRAFIA_REAL)
-    img_original.titulo_actual = "Radiografía Original (Control)"
     
-    # Mostramos la imagen base para tener el punto de comparación médico
-    img_original.visualizar()
+    print(" Abriendo: Radiografía Original... (Cerrá la ventana para aplicar el Filtro 1)")
+    img_original.visualizar(titulo="1. DOCENTE: Radiografía Original (Control)")
 
     # ==========================================================
-    # CASO 1: Reducción de Ruido (Filtro de Suavizado de 5x5)
+    # CASO 1: Reducción de Ruido (Filtro de Suavizado)
     # ==========================================================
-    print("\n[1/3] Aplicando Filtro de Suavizado (Promedio 5x5)...")
-    filtro_suave = Filtro("suavizado")
-    
-    # Obtenemos la matriz procesada uint8
+    print("\n[1/3] Aplicando Filtro de Suavizado...")
+    filtro_suave = Filtro("suavizado", tamaño=3) 
     matriz_suave = filtro_suave.aplicar(img_original) 
     
-    # Instanciamos un nuevo objeto Imagen con el resultado para poder visualizarlo
     img_suavizada = Imagen(matriz_suave)
-    img_suavizada.titulo_actual = "Radiografía: Filtro Suavizado (3x3)"
-    img_suavizada.visualizar()
+    
+    print(" Abriendo: Resultado Suavizado... (Cerrá la ventana para aplicar el Filtro 2)")
+    img_suavizada.visualizar(titulo="2. DOCENTE: Filtro Suavizado (Reducción de Ruido)")
 
     # ==========================================================
     # CASO 2: Realce de Estructuras Óseas (Filtro Sharpen)
     # ==========================================================
     print("\n[2/3] Aplicando Filtro Sharpen (Realce de Detalles)...")
     filtro_sharpen = Filtro("sharpen", tamaño=3)
-    
     matriz_sharpen = filtro_sharpen.aplicar(img_original)
     
     img_sharpen = Imagen(matriz_sharpen)
-    img_sharpen.titulo_actual = "Radiografía: Realce de Detalles (Sharpen)"
-    img_sharpen.visualizar()
+    
+    print(" Abriendo: Resultado Sharpen... (Cerrá la ventana para aplicar el Filtro 3)")
+    img_sharpen.visualizar(titulo="3. DOCENTE: Filtro Sharpen (Nitidez Ósea)")
 
     # ==========================================================
-    # CASO 3: Detección de Bordes (Sobel Vertical de 5x5)
+    # CASO 3: Detección de Bordes (Sobel Vertical)
     # ==========================================================
-    print("\n[3/3] Aplicando Filtro Sobel Vertical (5x5) para Bordes Corticales...")
-    filtro_sobel = Filtro("sobelverticalx5")
-    
+    print("\n[3/3] Aplicando Filtro Sobel Vertical para Bordes Corticales...")
+    # Asegúrate de que el catálogo reciba el texto en minúsculas según tu test_creacion
+    filtro_sobel = Filtro("sobelvertical", tamaño=3) 
     matriz_sobel = filtro_sobel.aplicar(img_original)
     
     img_sobel = Imagen(matriz_sobel)
-    img_sobel.titulo_actual = "Radiografía: Bordes Verticales (Sobel 5x5)"
     
-    # Usamos un mapa de grises para ver los gradientes óseos bien definidos
-    img_sobel.visualizar(cmap_gris="gray")
+    print(" Abriendo: Detección de Bordes... (Cerrá la ventana para finalizar el test)")
+    img_sobel.visualizar(titulo="4. DOCENTE: Gradientes Verticales (Sobel)")
 
-    print("\n=== Fin del Pipeline de Demostración ===")
+    print("\n" + "="*60)
+    print(" PIPELINE DE PROCESAMIENTO COMPLETADO CON ÉXITO ✅")
+    print("="*60)
 
+
+# Este bloque opcional queda de respaldo por si alguien arrastra y ejecuta 
+# el archivo de manera directa con 'python' en vez de usar 'pytest'
 if __name__ == "__main__":
-    demo_procesamiento_radiografia()
+    todos_los_tests = [
+        test_creacion_e_inicializacion_filtro,
+        test_error_filtro_inexistente,
+        test_filtrado_no_altera_dimensiones,
+        test_filtro_suavizado_reduce_varianza_global,
+        test_aplicar_suavizado_radiografia_real,
+        test_aplicar_sobel_horizontal_radiografia_real,
+        test_aplicar_sharpen_radiografia_real,
+        test_pipeline_demostracion_visual_docente
+    ]
 
+    print("\n=== EJECUTANDO CONTROLES DE CALIDAD AUTOMÁTICOS (8 TESTS) ===\n")
+    aprobados = 0
+    for test in todos_los_tests:
+        try:
+            test()
+            print(f"✓ {test.__name__}")
+            aprobados += 1
+        except AssertionError:
+            print(f"✗ {test.__name__} -> ERROR: Aserción fallida.")
+        except Exception as e:
+            print(f"✗ {test.__name__} -> CRASH NO CONTROLADO: {e}")
 
-
-# # 1. Cargamos la radiografía real (Crea el objeto de tipo Imagen)
-# rx = ImagenRadiografia.cargar(RUTA_RADIOGRAFIA_REAL)
-# rx2 = ImagenRadiografia.cargar(RUTA_RADIOGRAFIA_REAL)
-
-#     # 2 INSTANCIAMOS EL FILTRO: Creamos un objeto de la clase Filtro (ej: sharpen)
-#     # Al hacer esto, se ejecuta el __init__ y se carga el kernel matemático en el objeto
-# mi_filtro = Filtro("sobelhorizontalx7", tamaño=7)
-
-#     # 3. APLICAMOS EL FILTRO: Invocamos el método desde el objeto creado
-# matriz_filtrada = mi_filtro.aplicar(rx)
-
-#     # 4. ENCAPSULAMOS Y VISUALIZAMOS: Envolvemos la matriz uint8 resultante en un objeto Imagen
-# rx_procesada = Imagen(matriz_filtrada)
-# rx_procesada.titulo_actual = "Radiografía con Filtro sobel horizontal x7"
-# rx_procesada.visualizar()
-
-# rx2.detectar_bordes()
-# rx2.visualizar()
-
-
-marcapaso = Imagen.cargar("tests/imagenes_test/radiografias/216840111366964013829543166512013358092118761_02-089-145.png")
-mi_filtro2 = Filtro("sobelhorizontalx5", tamaño=5)
-
-    # 3. APLICAMOS EL FILTRO: Invocamos el método desde el objeto creado
-img_filtrada = mi_filtro2.aplicar(marcapaso)
-rx_filtrado = Imagen(img_filtrada)
-rx_filtrado.visualizar()
-print(rx_filtrado.data.shape)
-
+    print(f"\n[Resultado]: {aprobados}/{len(todos_los_tests)} módulos aprobados.")
