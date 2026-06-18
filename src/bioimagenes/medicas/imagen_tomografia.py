@@ -64,7 +64,7 @@ class ImagenTomografica(Imagen):
         if info is not None:
             self.info = info
 
-    #Propiedades para acceder a atributos protegidos
+    #Propiedades para acceder a atributos encapsulados
 
     @property
     def ventana_actual(self):

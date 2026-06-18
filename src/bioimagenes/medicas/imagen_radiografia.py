@@ -244,11 +244,12 @@ class ImagenRadiografia(Imagen):
         Detecta los bordes anatómicos de la radiografía.
         Utilizando un operador sobel de 7x7
         """
+        # Instanciamos el Filtro
         filtro_h = Filtro(nombre="sobelhorizontalx7")
         filtro_v = Filtro(nombre="sobelverticalx7")
 
         try:
-            # 2. Obtenemos los gradientes individuales
+            # Obtenemos los gradientes individuales
             g_x = filtro_h.aplicar(self)
             g_y = filtro_v.aplicar(self)
 
@@ -414,7 +415,7 @@ class ImagenRadiografia(Imagen):
         caja_anotacion.set_visible(False)
         ax.add_artist(caja_anotacion)
         
-        # --- EVENTO HOVER (Detectar el movimiento del cursor) ---
+        # --- Evento Hover (Detectar el movimiento del cursor) ---
         def hover(event):
             vis = caja_anotacion.get_visible()
             if event.inaxes == ax:

@@ -6,6 +6,32 @@ from scipy.signal import convolve2d
 class Filtro:
     """"
     Clase que permite realizar operaciones sobre la imagen
+
+    Parámetros
+    ----------
+    tipo : str
+        Nombre del filtro que se desea aplicar. 
+        Filtros reconocidos en el catálogo:
+            - "suavizado"       : Filtro de promedio para reducción de ruido.
+            - "sharpen"         : Filtro de realce de detalles.
+            - "sobelhorizontal" : Detector de gradientes y bordes horizontales.
+            - "sobelvertical"   : Detector de gradientes y bordes verticales.
+    tamaño : int, opcional
+        Dimensión impar para el tamaño de la ventana del kernel (ej. 3 para 3x3, 5 para 5x5).
+        Por defecto es 3.
+
+    Atributos
+    ---------
+    tipo : str
+        Nombre del filtro normalizado en minúsculas (ej. "sobelhorizontal").
+    kernel : np.ndarray
+        Matriz bidimensional de NumPy (float o int) que representa los pesos
+        numéricos del operador de convolución.
+
+    ValueError
+        Se lanza si el `tipo` de filtro solicitado no se encuentra dentro del 
+        catálogo de la librería, o si el `tamaño` especificado es un número par 
+        o menor que 1.
     """
 
     def __init__(self, nombre:str, tamaño:int=3):

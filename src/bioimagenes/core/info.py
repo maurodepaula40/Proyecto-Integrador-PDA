@@ -50,14 +50,16 @@ class Info:
             Instancia de la clase Historial asociada a la imagen. 
             Si no se proporciona, se crea una nueva. 
         
-        Retorna ------- None 
+        Retorna 
+        ------- 
+            - None 
         """
         
-        # si nos pasan algo que no es un diccionario → error 
+        # Si nos pasan algo que no es un diccionario → error 
         if datos is not None and not isinstance(datos, dict): 
             raise TypeError(f"'datos' debe ser un diccionario, se recibió {type(datos).__name__}.")
         
-        #si el dato pasado no es una instancia de Historial → error
+        # Si el dato pasado no es una instancia de Historial → error
         if historial is not None and not isinstance(historial, Historial): 
             raise TypeError(f"'historial' debe ser una instancia de Historial, se recibió {type(historial).__name__}.")
         

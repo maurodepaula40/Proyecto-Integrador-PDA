@@ -42,7 +42,7 @@ class Imagen:
         if data.ndim not in (2, 3):
             raise ValueError(f"data debe tener 2 o 3 dimensiones, no {data.ndim}")
         
-        #verificar que si la imagen es RGB tenga los 3 canales
+        # Verificar que si la imagen es RGB tenga los 3 canales
         if data.ndim == 3:
             if data.shape[2] == 3:
                 # Si es RGB común, nos quedamos con un canal
@@ -216,6 +216,24 @@ class Imagen:
     def visualizar(self, titulo: str = None, data: np.ndarray = None, cmap_gris: str = "gray"):
         """
         Permite mostrar una imagen almacenada utilizando la librería Matplotlib.
+
+        Parámetros
+        ----------
+            titulo : str, opcional
+                Título de la ventana gráfica de Matplotlib. Si no se proporciona (None), 
+                se utilizará un título genérico o el valor asignado a la propiedad de la imagen.
+            data : np.ndarray, opcional
+                Matriz de NumPy personalizada que se desea renderizar en lugar de la matriz 
+                principal (`self.data`). Útil para previsualizar cambios temporales o matrices 
+                intermedias del procesamiento. Por defecto es None.
+            cmap_gris : str, opcional
+                Mapa de colores (colormap) de Matplotlib utilizado para representar las intensidades 
+                de gris en la pantalla (por ejemplo, "gray", "bone", "viridis"). Por defecto es "gray".
+
+        Retorna
+        -------
+            None
+                El método no retorna ningún valor, genera una salida gráfica en una interfaz de usuario. 
         """
         # Resolución de datos y títulos
         if data is None:
@@ -353,6 +371,9 @@ class Imagen:
         
         Parametro:
             - filtro: Filtro es un objeto
+        
+        Retorna:
+            - None
         """
         # Lo importamos localmente para evitar la importacion circular
         from bioimagenes.filtros.filtro import Filtro
