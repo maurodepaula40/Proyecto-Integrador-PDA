@@ -363,8 +363,7 @@ class ImagenRadiografia(Imagen):
         puntos_2d = pca.fit_transform(vectores_imagenes)
         return puntos_2d
 
-
-    # Metodo auxiliar que 
+    #   Método auxiliar utilizado en visualizar_clusters
     def _agrupar_con_kmeans(self,puntos_2d, k=3):
         """Aplica K-means sobre los puntos bidimensionales."""
         kmeans = KMeans(n_clusters=k, random_state=42, n_init='auto')
